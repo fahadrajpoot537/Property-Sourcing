@@ -245,7 +245,7 @@
                             <!-- Message Button -->
                             <button type="button" class="btn btn-outline-dark" data-bs-toggle="modal"
                                 data-bs-target="#messageModal">
-                                <i class="bi bi-chat-dots-fill me-2"></i>Message Agent
+                                <i class="bi bi-chat-dots-fill me-2"></i>Message Admin
                             </button>
 
                             <!-- Download Brochure Button -->

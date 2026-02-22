@@ -450,15 +450,44 @@
                 margin-left: 0;
             }
         }
+
         /* User Dashboard Utilities */
-        .text-blue { color: var(--primary-blue) !important; }
-        .text-pink { color: var(--primary-pink) !important; }
-        .bg-blue { background-color: var(--primary-blue) !important; color: white !important; }
-        .bg-pink { background-color: var(--primary-pink) !important; color: white !important; }
-        .btn-outline-blue { border: 1px solid var(--primary-blue); color: var(--primary-blue); transition: all 0.3s; }
-        .btn-outline-blue:hover { background-color: var(--primary-blue); color: white; }
-        .hover-lift { transition: transform 0.3s ease; }
-        .hover-lift:hover { transform: translateY(-5px); }
+        .text-blue {
+            color: var(--primary-blue) !important;
+        }
+
+        .text-pink {
+            color: var(--primary-pink) !important;
+        }
+
+        .bg-blue {
+            background-color: var(--primary-blue) !important;
+            color: white !important;
+        }
+
+        .bg-pink {
+            background-color: var(--primary-pink) !important;
+            color: white !important;
+        }
+
+        .btn-outline-blue {
+            border: 1px solid var(--primary-blue);
+            color: var(--primary-blue);
+            transition: all 0.3s;
+        }
+
+        .btn-outline-blue:hover {
+            background-color: var(--primary-blue);
+            color: white;
+        }
+
+        .hover-lift {
+            transition: transform 0.3s ease;
+        }
+
+        .hover-lift:hover {
+            transform: translateY(-5px);
+        }
     </style>
     @stack('styles')
 </head>
@@ -520,36 +549,40 @@
                     </a>
                 @endif
 
-                <a href="{{ route('admin.inquiries.index') }}"
-                    class="{{ request()->routeIs('admin.inquiries.*') && !request()->has('type') ? 'active' : '' }}">
-                    <i class="bi bi-envelope-fill"></i>
-                    <span>General Inquiries</span>
-                    @php
-                        $unreadInquiriesCount = \App\Models\Inquiry::unread()->where('type', '!=', 'property')->count();
-                    @endphp
-                    @if($unreadInquiriesCount > 0)
-                        <span class="badge bg-danger ms-auto">{{ $unreadInquiriesCount }}</span>
-                    @endif
-                </a>
+                @if(auth()->user()->role === 'admin')
+                    <a href="{{ route('admin.inquiries.index') }}"
+                        class="{{ request()->routeIs('admin.inquiries.*') && !request()->has('type') ? 'active' : '' }}">
+                        <i class="bi bi-envelope-fill"></i>
+                        <span>General Inquiries</span>
+                        @php
+                            $unreadInquiriesCount = \App\Models\Inquiry::unread()->where('type', '!=', 'property')->count();
+                        @endphp
+                        @if($unreadInquiriesCount > 0)
+                            <span class="badge bg-danger ms-auto">{{ $unreadInquiriesCount }}</span>
+                        @endif
+                    </a>
 
-                <a href="{{ route('admin.inquiries.index', ['type' => 'property']) }}"
-                    class="{{ request()->routeIs('admin.inquiries.*') && request()->get('type') == 'property' ? 'active' : '' }}">
-                    <i class="bi bi-building-check"></i>
-                    <span>Property Inquiries</span>
-                    @php
-                        $unreadPropertyCount = \App\Models\Inquiry::unread()->where('type', 'property')->count();
-                    @endphp
-                    @if($unreadPropertyCount > 0)
-                        <span class="badge bg-danger ms-auto">{{ $unreadPropertyCount }}</span>
-                    @endif
-                </a>
+                    <a href="{{ route('admin.inquiries.index', ['type' => 'property']) }}"
+                        class="{{ request()->routeIs('admin.inquiries.*') && request()->get('type') == 'property' ? 'active' : '' }}">
+                        <i class="bi bi-building-check"></i>
+                        <span>Property Inquiries</span>
+                        @php
+                            $unreadPropertyCount = \App\Models\Inquiry::unread()->where('type', 'property')->count();
+                        @endphp
+                        @if($unreadPropertyCount > 0)
+                            <span class="badge bg-danger ms-auto">{{ $unreadPropertyCount }}</span>
+                        @endif
+                    </a>
+                @endif
 
-                <!-- Messages Link for Admin/Agent -->
-                <a href="{{ route('admin.messages.index') }}"
-                    class="{{ request()->routeIs('admin.messages.*') ? 'active' : '' }}">
-                    <i class="bi bi-chat-dots-fill"></i>
-                    <span>Messages</span>
-                </a>
+                <!-- Messages Link for Admin Only -->
+                @if(auth()->user()->role === 'admin')
+                    <a href="{{ route('admin.messages.index') }}"
+                        class="{{ request()->routeIs('admin.messages.*') ? 'active' : '' }}">
+                        <i class="bi bi-chat-dots-fill"></i>
+                        <span>Messages</span>
+                    </a>
+                @endif
 
                 <div class="nav-section-title">Properties</div>
                 @if(auth()->user()->role === 'admin')
@@ -650,7 +683,7 @@
         </div>
 
         <div class="topbar-actions">
-            @if(in_array(auth()->user()->role, ['admin', 'agent']))
+            @if(auth()->user()->role === 'admin')
                 <a href="{{ route('admin.inquiries.index') }}" class="topbar-btn text-decoration-none">
                     <i class="bi bi-bell"></i>
                     @if(($unreadInquiriesCount ?? 0) > 0)
@@ -658,9 +691,11 @@
                     @endif
                 </a>
             @endif
-            <a href="{{ route('admin.messages.index') }}" class="topbar-btn text-decoration-none">
-                <i class="bi bi-envelope"></i>
-            </a>
+            @if(auth()->user()->role === 'admin')
+                <a href="{{ route('admin.messages.index') }}" class="topbar-btn text-decoration-none">
+                    <i class="bi bi-envelope"></i>
+                </a>
+            @endif
             <div class="user-dropdown">
                 <div class="user-avatar">{{ substr(auth()->user()->name, 0, 1) }}</div>
                 <span class="fw-600">{{ auth()->user()->name }}</span>

@@ -130,7 +130,8 @@
                                                     Out</option>
                                                 @if(!in_array($property->status, ['pending', 'sold out']))
                                                     <option value="{{ $property->status }}" selected disabled>
-                                                        {{ ucfirst($property->status) }}</option>
+                                                        {{ ucfirst($property->status) }}
+                                                    </option>
                                                 @endif
                                             @endif
                                         </select>
@@ -146,10 +147,12 @@
                                             class="btn btn-sm btn-admin-edit" title="Edit">
                                             <i class="bi bi-pencil"></i>
                                         </a>
-                                        <a href="{{ route('admin.property-offers.index', $property->id) }}"
-                                            class="btn btn-sm btn-info text-white" title="View Offers">
-                                            <i class="bi bi-tag-fill"></i>
-                                        </a>
+                                        @if(auth()->user()->role === 'admin')
+                                            <a href="{{ route('admin.property-offers.index', $property->id) }}"
+                                                class="btn btn-sm btn-info text-white" title="View Offers">
+                                                <i class="bi bi-tag-fill"></i>
+                                            </a>
+                                        @endif
                                         <form action="{{ route('admin.available-properties.destroy', $property->id) }}"
                                             method="POST" class="d-inline"
                                             onsubmit="return confirm('Are you sure you want to delete this property?');">

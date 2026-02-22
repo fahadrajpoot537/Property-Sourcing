@@ -6,6 +6,7 @@ use App\Models\PropertyMessage;
 use App\Models\AvailableProperty;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 
 class PropertyMessageController extends Controller
 {
@@ -20,13 +21,13 @@ class PropertyMessageController extends Controller
         ]);
 
         $property = AvailableProperty::findOrFail($request->property_id);
-        $receiverId = $property->user_id ?? 1; // Default to admin if no user_id
+        $receiverId = 1; // Always send to admin
 
-        if ($receiverId == Auth::id()) {
-            return back()->with('error', 'You cannot send a message to yourself.');
+        if (Auth::id() == $receiverId) {
+            return back()->with('error', 'Admin cannot send messages to themselves.');
         }
 
-        PropertyMessage::create([
+        $message = PropertyMessage::create([
             'available_property_id' => $property->id,
             'sender_id' => Auth::id(),
             'receiver_id' => $receiverId,
@@ -34,7 +35,35 @@ class PropertyMessageController extends Controller
             'is_read' => false,
         ]);
 
+        // Notify admin via email
+        $this->sendMessageNotification($message, $property);
+
         return back()->with('success', 'Message sent successfully!');
+    }
+
+    private function sendMessageNotification($propertyMessage, $property)
+    {
+        $adminEmail = 'webleads@propertysourcinggroup.co.uk';
+        $user = Auth::user();
+
+        $data = [
+            'user_name' => $user->name,
+            'user_email' => $user->email,
+            'property_title' => $property->headline,
+            'property_location' => $property->location,
+            'message_text' => $propertyMessage->message,
+            'message_url' => route('admin.messages.index'),
+        ];
+
+        try {
+            Mail::send('emails.property_message', $data, function ($message) use ($adminEmail, $property, $user) {
+                $message->to($adminEmail)
+                    ->from('inquiries@propertysourcinggroup.co.uk', 'Property Sourcing Group')
+                    ->subject('New Property Message: ' . $property->headline . ' from ' . $user->name);
+            });
+        } catch (\Exception $e) {
+            \Log::error('Failed to send message notification email: ' . $e->getMessage());
+        }
     }
 
     /**

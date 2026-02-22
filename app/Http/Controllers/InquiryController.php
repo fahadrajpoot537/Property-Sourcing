@@ -51,17 +51,8 @@ class InquiryController extends Controller
             'type' => $inquiry->type,
         ];
 
-        // Determine recipient based on inquiry type or property owner
+        // All inquiries should go to the main admin email
         $recipient = 'webleads@propertysourcinggroup.co.uk';
-
-        if ($inquiry->type === 'event') {
-            $recipient = 'event@propertysourcinggroup.co.uk';
-        } elseif ($inquiry->owner_id) {
-            $owner = \App\Models\User::find($inquiry->owner_id);
-            if ($owner && $owner->email) {
-                $recipient = $owner->email;
-            }
-        }
 
         try {
             Mail::send('emails.inquiry', $emailData, function ($message) use ($recipient, $inquiry) {

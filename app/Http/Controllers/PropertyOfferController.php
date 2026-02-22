@@ -6,6 +6,7 @@ use App\Models\PropertyOffer;
 use App\Models\AvailableProperty;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 
 class PropertyOfferController extends Controller
 {
@@ -33,7 +34,36 @@ class PropertyOfferController extends Controller
             'notes' => $request->notes,
         ]);
 
+        // Send email notification to admin
+        $this->sendOfferNotification($offer, $property);
+
         return back()->with('success', 'Your offer has been submitted successfully!');
+    }
+
+    private function sendOfferNotification($offer, $property)
+    {
+        $adminEmail = 'webleads@propertysourcinggroup.co.uk';
+        $user = Auth::user();
+
+        $data = [
+            'user_name' => $user->name,
+            'user_email' => $user->email,
+            'property_title' => $property->headline,
+            'property_location' => $property->location,
+            'offer_amount' => $offer->offer_amount,
+            'notes' => $offer->notes,
+            'offer_url' => route('admin.property-offers.index', $property->id),
+        ];
+
+        try {
+            Mail::send('emails.property_offer', $data, function ($message) use ($adminEmail, $property, $user) {
+                $message->to($adminEmail)
+                    ->from('inquiries@propertysourcinggroup.co.uk', 'Property Sourcing Group')
+                    ->subject('New Property Offer: ' . $property->headline . ' from ' . $user->name);
+            });
+        } catch (\Exception $e) {
+            \Log::error('Failed to send offer notification email: ' . $e->getMessage());
+        }
     }
 
     /**
