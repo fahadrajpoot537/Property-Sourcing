@@ -105,6 +105,24 @@
                             </div>
                         @endif
 
+                        @if($inquiry->is_cash_buyer)
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="text-muted small mb-1">Cash Buyer</label>
+                                    <div class="fw-bold">{{ $inquiry->is_cash_buyer }}</div>
+                                </div>
+                            </div>
+                        @endif
+
+                        @if($inquiry->budget)
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="text-muted small mb-1">Budget</label>
+                                    <div class="fw-bold">{{ $inquiry->budget }}</div>
+                                </div>
+                            </div>
+                        @endif
+
                         @if($inquiry->experience_level)
                             <div class="col-md-6">
                                 <div class="mb-3">

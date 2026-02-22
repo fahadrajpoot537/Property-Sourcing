@@ -83,9 +83,9 @@
                                         <div class="input-group-modern">
                                             <i class="bi bi-person-check icon"></i>
                                             <select name="role" id="role-select" class="form-select" required>
-                                                <option value="user" {{ old('role') == 'user' ? 'selected' : '' }}>Investor
+                                                <option value="user" {{ (old('role') ?? request('role')) == 'user' ? 'selected' : '' }}>Investor
                                                 </option>
-                                                <option value="agent" {{ old('role') == 'agent' ? 'selected' : '' }}>Agent
+                                                <option value="agent" {{ (old('role') ?? request('role')) == 'agent' ? 'selected' : '' }}>Agent
                                                 </option>
                                             </select>
                                         </div>

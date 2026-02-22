@@ -18,6 +18,19 @@
             <div class="row align-items-center">
                 <!-- Left Content -->
                 <div class="col-lg-7 mb-5 mb-lg-0">
+                    <div
+                        class="d-flex align-items-center gap-2 mb-3 bg-white bg-opacity-10 d-inline-flex px-3 py-2 rounded-pill border border-white border-opacity-25">
+                        <i class="bi bi-star-fill" style="color: #00b67a;"></i>
+                        <span class="small fw-bold text-white">Rated Excellent on Trustpilot</span>
+                        <div class="d-flex gap-1 ms-2">
+                            @for($i = 0; $i < 5; $i++)
+                                <div class="rounded-1 d-flex align-items-center justify-content-center"
+                                    style="width: 14px; height: 14px; background-color: #00b67a;">
+                                    <i class="bi bi-star-fill" style="font-size: 8px; color: white;"></i>
+                                </div>
+                            @endfor
+                        </div>
+                    </div>
                     <h1 class="display-4 fw-bold mb-4">Property Deal Sourcing</h1>
                     <p class="lead opacity-75 mb-4">Investing in deals that aren't listed on Rightmove?</p>
                     <p class="mb-5 text-white">Join our exclusive property deal sourcing service today. We
@@ -93,11 +106,11 @@
                     <p class="mb-0 fw-bold text-dark opacity-50">THE NUMBERS SPEAK FOR THEMSELVES</p>
                 </div>
                 <div class="col-md-3">
-                    <h2 class="fw-bold mb-0 text-blue">700+</h2>
+                    <h2 class="fw-bold mb-0 text-blue">100+</h2>
                     <p class="small text-muted mb-0">Properties Sold</p>
                 </div>
                 <div class="col-md-3">
-                    <h2 class="fw-bold mb-0 text-blue">100+</h2>
+                    <h2 class="fw-bold mb-0 text-blue">25</h2>
                     <p class="small text-muted mb-0">Years of Experience</p>
                 </div>
                 <div class="col-md-3">
@@ -138,50 +151,70 @@
     <!-- Trustpilot Reviews Section -->
     @if(isset($trustpilotReviews) && $trustpilotReviews->isNotEmpty())
         @php
-            $tpReview = $trustpilotReviews->first();
+            $averageRating = $trustpilotReviews->avg('rating_stars');
+            $totalReviews = $trustpilotReviews->count();
         @endphp
         <section class="py-4 border-top border-bottom" style="background-color: #fafffc;">
             <div class="container">
                 <div class="row justify-content-center">
                     <div class="col-lg-10">
-                        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-center gap-4 gap-lg-3">
-                            <!-- Logo Area -->
-                            <div class="d-flex align-items-center gap-2">
-                                <i class="bi bi-star-fill fs-2" style="color: #00b67a;"></i>
-                                <span class="fw-bold fs-3 text-dark">Trustpilot</span>
-                            </div>
-
-                            <!-- Rating Area -->
-                            <div class="d-flex flex-column flex-md-row align-items-center gap-3 text-center text-md-start">
-                                <div class="d-flex gap-1 justify-content-center">
-                                    @for($i = 1; $i <= 5; $i++)
-                                        @php
-                                            $fill = 0;
-                                            if ($tpReview->rating_stars >= $i) {
-                                                $fill = 100;
-                                            } elseif ($tpReview->rating_stars > ($i - 1)) {
-                                                $fill = ($tpReview->rating_stars - ($i - 1)) * 100;
-                                            }
-                                        @endphp
-                                        <div class="d-flex align-items-center justify-content-center"
-                                            style="width: 32px; height: 32px; background: linear-gradient(90deg, #00b67a {{ $fill }}%, #dcdce6 {{ $fill }}%); color: white;">
-                                            <i class="bi bi-star-fill fs-6"></i>
-                                        </div>
-                                    @endfor
+                        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-center gap-4">
+                            <!-- Logo and General Rating -->
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="bi bi-star-fill fs-2" style="color: #00b67a;"></i>
+                                    <span class="fw-bold fs-3 text-dark">Trustpilot</span>
                                 </div>
-                                <div>
-                                    <div class="fw-bold fs-5 text-dark lh-1">Rated
-                                        {{ number_format($tpReview->rating_stars, 1) }} / 5.0</div>
-                                    <div class="small text-muted mt-1">{{ $tpReview->review_text }}</div>
+                                <div class="vr d-none d-md-block" style="height: 40px; opacity: 0.1;"></div>
+                                <div class="text-start">
+                                    <div class="fw-bold fs-5 text-dark lh-1">Rated {{ number_format($averageRating, 1) }} / 5.0
+                                    </div>
+                                    <div class="small text-muted mt-1">Based on <strong>{{ $totalReviews }}</strong> verified
+                                        reviews</div>
                                 </div>
                             </div>
 
-                            <!-- Link Icon -->
+                            <!-- Star Display -->
+                            <div class="d-flex gap-1">
+                                @for($i = 1; $i <= 5; $i++)
+                                    @php
+                                        $fill = 0;
+                                        if ($averageRating >= $i) {
+                                            $fill = 100;
+                                        } elseif ($averageRating > ($i - 1)) {
+                                            $fill = ($averageRating - ($i - 1)) * 100;
+                                        }
+                                    @endphp
+                                    <div class="d-flex align-items-center justify-content-center"
+                                        style="width: 38px; height: 38px; background: linear-gradient(90deg, #00b67a {{ $fill }}%, #dcdce6 {{ $fill }}%); color: white; border-radius: 4px;">
+                                        <i class="bi bi-star-fill fs-5"></i>
+                                    </div>
+                                @endfor
+                            </div>
+
+                            <!-- CTA Link -->
                             <a href="https://uk.trustpilot.com/review/propertysourcinggroup.co.uk" target="_blank"
-                                class="btn rounded-circle d-flex align-items-center justify-content-center shadow-sm transition-hover mt-2 mt-lg-0"
-                                style="width: 50px; height: 50px; background-color: white; color: #00b67a; border: 2px solid #00b67a;">
-                                <i class="bi bi-box-arrow-right fs-4"></i>
+                                class="btn fw-bold d-flex align-items-center gap-2 px-4 py-2 shadow-sm transition-hover"
+                                style="background-color: white; color: #00b67a; border: 1px solid #00b67a; border-radius: 50px;">
+                                View our reviews <i class="bi bi-box-arrow-up-right"></i>
                             </a>
+                        </div>
+
+                        <!-- Review Carousel -->
+                        <div id="trustpilotCarousel" class="carousel slide mt-5" data-bs-ride="carousel">
+
+                            @if($trustpilotReviews->count() > 1)
+                                <button class="carousel-control-prev" type="button" data-bs-target="#trustpilotCarousel"
+                                    data-bs-slide="prev" style="width: 5%;">
+                                    <span class="carousel-control-prev-icon bg-dark rounded-circle p-2" aria-hidden="true"
+                                        style="width: 30px; height: 30px;"></span>
+                                </button>
+                                <button class="carousel-control-next" type="button" data-bs-target="#trustpilotCarousel"
+                                    data-bs-slide="next" style="width: 5%;">
+                                    <span class="carousel-control-next-icon bg-dark rounded-circle p-2" aria-hidden="true"
+                                        style="width: 30px; height: 30px;"></span>
+                                </button>
+                            @endif
                         </div>
                     </div>
                 </div>

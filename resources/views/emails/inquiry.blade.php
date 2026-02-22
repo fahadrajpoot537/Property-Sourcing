@@ -98,6 +98,20 @@
                 </div>
             @endif
 
+            @if(isset($is_cash_buyer) && $is_cash_buyer)
+                <div class="field">
+                    <div class="field-label">Cash Buyer:</div>
+                    <div class="field-value">{{ $is_cash_buyer }}</div>
+                </div>
+            @endif
+
+            @if(isset($budget) && $budget)
+                <div class="field">
+                    <div class="field-label">Budget:</div>
+                    <div class="field-value">{{ $budget }}</div>
+                </div>
+            @endif
+
             @if($experience_level)
                 <div class="field">
                     <div class="field-label">Experience Level:</div>

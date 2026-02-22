@@ -129,6 +129,9 @@
                                 </td>
                                 <td>
                                     <div class="fw-bold text-dark">{{ $inquiry->name }}</div>
+                                    @if($inquiry->budget)
+                                        <small class="text-pink fw-bold">Budget: {{ $inquiry->budget }}</small><br>
+                                    @endif
                                     @if($inquiry->comments)
                                         <small class="text-muted">{{ Str::limit($inquiry->comments, 40) }}</small>
                                     @endif

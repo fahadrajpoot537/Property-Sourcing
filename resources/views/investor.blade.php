@@ -114,6 +114,24 @@
                                 </select>
                             </div>
 
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-white-50">ARE YOU A CASH BUYER?*</label>
+                                <select name="is_cash_buyer"
+                                    class="form-select bg-transparent text-white border-white-50 investor-form-input appearance-none"
+                                    required>
+                                    <option value="" class="text-dark">Please Select</option>
+                                    <option value="Yes" class="text-dark">Yes</option>
+                                    <option value="No" class="text-dark">No</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-white-50">WHAT IS YOUR BUDGET?*</label>
+                                <input type="text" name="budget"
+                                    class="form-control bg-transparent text-white border-white-50 investor-form-input"
+                                    placeholder="e.g. £100,000 - £200,000" required>
+                            </div>
+
                             <div class="mb-4">
                                 <label class="form-label small fw-bold text-white-50">WHAT TYPE OF INVESTMENTS ARE YOU
                                     INTERESTED IN?*</label>

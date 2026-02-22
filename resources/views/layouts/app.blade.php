@@ -739,7 +739,8 @@
             <div class="row gy-5">
                 <div class="col-lg-4 col-md-6">
                     <img src="{{ asset('logo.png') }}" alt="Property Sourcing Group" class="mb-4"
-                        style="max-height: 75px; width: auto; object-fit: contain; image-rendering: -webkit-optimize-contrast;" loading="lazy">
+                        style="max-height: 75px; width: auto; object-fit: contain; image-rendering: -webkit-optimize-contrast;"
+                        loading="lazy">
                     <p class="text-black opacity-75 small mb-4">
                         We connect investors with high-yield UK property deals. Making property investment
                         accessible, profitable, and stress-free.
@@ -761,7 +762,11 @@
                                     href="{{ route('service.show', $service->slug) }}">{{ $service->title }}</a></li>
                         @endforeach
                         <li style="margin-top:10px"><a href="https://propertysalesdirect.co.uk/">Looking To Sell
-                                Property Cash</a></li>
+                                Property Fast</a></li>
+                        <li style="margin-top:10px"><a href="{{ route('register', ['role' => 'agent']) }}">Agent
+                                Registration</a></li>
+                        <li style="margin-top:10px"><a href="{{ route('register', ['role' => 'user']) }}">Investor
+                                Registration</a></li>
                     </ul>
                 </div>
                 <div class="col-lg-4 col-md-6">

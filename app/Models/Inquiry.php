@@ -18,6 +18,8 @@ class Inquiry extends Model
         'phone',
         'ready_to_buy',
         'investment_type',
+        'is_cash_buyer',
+        'budget',
         'experience_level',
         'comments',
         'source_page',
