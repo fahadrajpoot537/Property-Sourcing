@@ -374,16 +374,22 @@ class AvailablePropertyController extends Controller
 
     public function downloadBrochure($id)
     {
+        ini_set('memory_limit', '256M');
+        ini_set('max_execution_time', '120');
         try {
             $property = AvailableProperty::with(['propertyType', 'marketingPurpose', 'unitType', 'features', 'costs'])->findOrFail($id);
             $user = auth()->user();
 
+            // Sanitize filename
+            $filename = 'Brochure_' . preg_replace('/[^A-Za-z0-9_\-]/', '_', $property->headline) . '.pdf';
+
             $pdf = Pdf::loadView('available_properties.brochure', compact('property', 'user'));
             $pdf->setPaper('a4', 'portrait');
 
-            return $pdf->download('Brochure_' . str_replace(' ', '_', $property->headline) . '.pdf');
+            return $pdf->download($filename);
         } catch (\Exception $e) {
-            \Log::error('Brochure download error: ' . $e->getMessage());
+            \Log::error('Brochure download error for ID ' . $id . ': ' . $e->getMessage());
+            \Log::error($e->getTraceAsString());
             return back()->with('error', 'Could not generate brochure: ' . $e->getMessage());
         }
     }

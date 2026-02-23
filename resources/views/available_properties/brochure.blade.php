@@ -199,7 +199,7 @@
         <div class="property-title">{{ $property->headline }}</div>
         <div class="property-location">{{ $property->location }}</div>
 
-        @if($property->thumbnail)
+        @if($property->thumbnail && file_exists(public_path('storage/' . $property->thumbnail)))
             <img src="{{ public_path('storage/' . $property->thumbnail) }}" class="main-image">
         @endif
 
@@ -432,8 +432,10 @@
                     <tr>
                         @foreach($row as $image)
                             <td width="50%" style="vertical-align: top; padding: 10px;">
-                                <img src="{{ public_path('storage/' . $image) }}"
-                                    style="width: 100%; height: auto; border-radius: 8px; display: block;">
+                                @if(file_exists(public_path('storage/' . $image)))
+                                    <img src="{{ public_path('storage/' . $image) }}"
+                                        style="width: 100%; height: auto; border-radius: 8px; display: block;">
+                                @endif
                             </td>
                         @endforeach
                         @if(count($row) < 2)
