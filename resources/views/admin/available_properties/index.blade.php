@@ -15,9 +15,14 @@
                     </ol>
                 </nav>
             </div>
-            <a href="{{ route('admin.available-properties.create') }}" class="btn btn-admin-pink">
-                <i class="bi bi-plus-lg me-2"></i>Add New Available Property
-            </a>
+            <div class="d-flex gap-2">
+                <button type="button" id="btnSendBulkEmail" class="btn btn-admin-blue" style="display: none;">
+                    <i class="bi bi-envelope-paper me-2"></i>Send Selected via Email
+                </button>
+                <a href="{{ route('admin.available-properties.create') }}" class="btn btn-admin-pink">
+                    <i class="bi bi-plus-lg me-2"></i>Add New Available Property
+                </a>
+            </div>
         </div>
     </div>
 
@@ -61,6 +66,11 @@
                 <table class="table admin-table">
                     <thead>
                         <tr>
+                            <th style="width: 40px;">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="selectAllProperties">
+                                </div>
+                            </th>
                             <th style="width: 80px;">Thumbnail</th>
                             <th>Headline & Location</th>
                             @if(auth()->user()->role === 'admin')
@@ -74,8 +84,14 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($properties as $property)
+                        @foreach($properties as $property)
                             <tr>
+                                <td>
+                                    <div class="form-check">
+                                        <input class="form-check-input property-checkbox" type="checkbox"
+                                            value="{{ $property->id }}">
+                                    </div>
+                                </td>
                                 <td>
                                     @if($property->thumbnail)
                                         <img src="{{ Storage::url($property->thumbnail) }}" alt="Property" class="rounded"
@@ -165,9 +181,10 @@
                                     </div>
                                 </td>
                             </tr>
-                        @empty
+                        @endforeach
+                        @if($properties->count() == 0)
                             <tr>
-                                <td colspan="8" class="text-center py-5">
+                                <td colspan="9" class="text-center py-5">
                                     <i class="bi bi-inbox fs-1 text-muted d-block mb-3"></i>
                                     <p class="text-muted mb-3">No available properties found.</p>
                                     <a href="{{ route('admin.available-properties.create') }}" class="btn btn-admin-pink">
@@ -175,7 +192,7 @@
                                     </a>
                                 </td>
                             </tr>
-                        @endforelse
+                        @endif
                     </tbody>
                 </table>
             </div>
@@ -188,4 +205,147 @@
             {{ $properties->links('pagination::bootstrap-5') }}
         </div>
     @endif
+    <!-- Send Email Modal -->
+    <div class="modal fade" id="emailModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-blue text-white">
+                    <h5 class="modal-title"><i class="bi bi-envelope-paper me-2"></i>Send Property Deals</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="bulkEmailForm">
+                        @csrf
+                        <div class="mb-3">
+                            <label class="form-label fw-600">Recipient Email Address</label>
+                            <input type="email" id="recipientEmail" class="form-control" placeholder="investor@example.com" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-600">Email Subject</label>
+                            <input type="text" id="emailSubject" class="form-control" value="Exclusive Property Deals for You" required>
+                        </div>
+                        <div id="emailPropertiesCount" class="small text-muted mb-3">
+                            Sending <span id="selectedCountDisplay">0</span> selected properties.
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" id="btnSubmitEmail" class="btn btn-admin-pink py-2">
+                                <span id="btnText">Send Email</span>
+                                <span id="btnLoader" class="spinner-border spinner-border-sm ms-2" style="display: none;"></span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const selectAll = document.getElementById('selectAllProperties');
+            const bulkBtn = document.getElementById('btnSendBulkEmail');
+            const emailModalElem = document.getElementById('emailModal');
+            let emailModalInstance = null;
+            if(emailModalElem && typeof bootstrap !== 'undefined') emailModalInstance = new bootstrap.Modal(emailModalElem);
+            
+            const bulkEmailForm = document.getElementById('bulkEmailForm');
+            const btnSubmitEmail = document.getElementById('btnSubmitEmail');
+            const btnText = document.getElementById('btnText');
+            const btnLoader = document.getElementById('btnLoader');
+            const selectedCountDisplay = document.getElementById('selectedCountDisplay');
+
+            function updateBulkBtn() {
+                const checkboxes = document.querySelectorAll('.property-checkbox:checked');
+                const checkedCount = checkboxes.length;
+                if(bulkBtn) bulkBtn.style.display = checkedCount > 0 ? 'inline-block' : 'none';
+                if(selectedCountDisplay) selectedCountDisplay.textContent = checkedCount;
+            }
+
+            if(selectAll) {
+                selectAll.addEventListener('change', function() {
+                    const checkboxes = document.querySelectorAll('.property-checkbox');
+                    checkboxes.forEach(cb => {
+                        cb.checked = selectAll.checked;
+                    });
+                    updateBulkBtn();
+                });
+            }
+
+            // Using event delegation for checkboxes
+            document.addEventListener('change', function(e) {
+                if (e.target.classList.contains('property-checkbox')) {
+                    updateBulkBtn();
+                    
+                    // Update checkAll state
+                    if(selectAll) {
+                        const allCheckboxes = document.querySelectorAll('.property-checkbox');
+                        const allChecked = document.querySelectorAll('.property-checkbox:checked');
+                        selectAll.checked = allCheckboxes.length === allChecked.length;
+                    }
+                }
+            });
+
+            if(bulkBtn) {
+                bulkBtn.addEventListener('click', function() {
+                    updateBulkBtn();
+                    if(emailModalInstance) emailModalInstance.show();
+                });
+            }
+
+            if(bulkEmailForm) {
+                bulkEmailForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+
+                    const propertyIds = Array.from(document.querySelectorAll('.property-checkbox:checked')).map(cb => cb.value);
+                    const email = document.getElementById('recipientEmail').value;
+                    const subject = document.getElementById('emailSubject').value;
+
+                    if(propertyIds.length === 0) {
+                        alert('Please select at least one property.');
+                        return;
+                    }
+
+                    // Disable UI
+                    btnSubmitEmail.disabled = true;
+                    btnText.textContent = 'Sending...';
+                    btnLoader.style.display = 'inline-block';
+
+                    fetch('{{ route("admin.available-properties.send-bulk-email") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({
+                            property_ids: propertyIds,
+                            email: email,
+                            subject: subject
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert(data.message);
+                            if(emailModalInstance) emailModalInstance.hide();
+                            bulkEmailForm.reset();
+                            document.querySelectorAll('.property-checkbox').forEach(cb => cb.checked = false);
+                            if(selectAll) selectAll.checked = false;
+                            updateBulkBtn();
+                        } else {
+                            alert('Error: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred while sending the email.');
+                    })
+                    .finally(() => {
+                        // Re-enable UI
+                        btnSubmitEmail.disabled = false;
+                        btnText.textContent = 'Send Email';
+                        btnLoader.style.display = 'none';
+                    });
+                });
+            }
+        });
+    </script>
 @endsection

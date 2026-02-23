@@ -554,28 +554,15 @@
                         class="{{ request()->routeIs('admin.inquiries.*') && !request()->has('type') ? 'active' : '' }}">
                         <i class="bi bi-envelope-fill"></i>
                         <span>General Inquiries</span>
-                        @php
-                            $unreadInquiriesCount = \App\Models\Inquiry::unread()->where('type', '!=', 'property')->count();
-                        @endphp
-                        @if($unreadInquiriesCount > 0)
-                            <span class="badge bg-danger ms-auto">{{ $unreadInquiriesCount }}</span>
-                        @endif
                     </a>
 
                     <a href="{{ route('admin.inquiries.index', ['type' => 'property']) }}"
                         class="{{ request()->routeIs('admin.inquiries.*') && request()->get('type') == 'property' ? 'active' : '' }}">
                         <i class="bi bi-building-check"></i>
                         <span>Property Inquiries</span>
-                        @php
-                            $unreadPropertyCount = \App\Models\Inquiry::unread()->where('type', 'property')->count();
-                        @endphp
-                        @if($unreadPropertyCount > 0)
-                            <span class="badge bg-danger ms-auto">{{ $unreadPropertyCount }}</span>
-                        @endif
                     </a>
                 @endif
 
-                <!-- Messages Link for Admin Only -->
                 @if(auth()->user()->role === 'admin')
                     <a href="{{ route('admin.messages.index') }}"
                         class="{{ request()->routeIs('admin.messages.*') ? 'active' : '' }}">
@@ -583,6 +570,12 @@
                         <span>Messages</span>
                     </a>
                 @endif
+
+                <a href="{{ route('admin.investors.index') }}"
+                    class="{{ request()->routeIs('admin.investors.*') ? 'active' : '' }}">
+                    <i class="bi bi-person-lines-fill"></i>
+                    <span>Investor List</span>
+                </a>
 
                 <div class="nav-section-title">Properties</div>
                 @if(auth()->user()->role === 'admin')
@@ -686,9 +679,6 @@
             @if(auth()->user()->role === 'admin')
                 <a href="{{ route('admin.inquiries.index') }}" class="topbar-btn text-decoration-none">
                     <i class="bi bi-bell"></i>
-                    @if(($unreadInquiriesCount ?? 0) > 0)
-                        <span class="badge bg-danger">{{ $unreadInquiriesCount ?? 0 }}</span>
-                    @endif
                 </a>
             @endif
             @if(auth()->user()->role === 'admin')

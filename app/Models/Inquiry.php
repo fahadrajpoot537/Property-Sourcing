@@ -40,6 +40,11 @@ class Inquiry extends Model
         return $query->where('is_read', false);
     }
 
+    public function property()
+    {
+        return $this->belongsTo(AvailableProperty::class, 'property_id');
+    }
+
     public function scopeByType($query, $type)
     {
         return $query->where('type', $type);

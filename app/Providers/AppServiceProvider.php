@@ -19,6 +19,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        \App\Models\AvailableProperty::observe(\App\Observers\AvailablePropertyObserver::class);
+
         try {
             if (\Illuminate\Support\Facades\Schema::hasTable('services')) {
                 // Sharing services variable for the navbar dropdown

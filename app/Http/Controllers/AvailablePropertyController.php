@@ -417,4 +417,23 @@ class AvailablePropertyController extends Controller
 
         return back()->with('success', 'Property status updated successfully');
     }
+    public function sendBulkEmail(Request $request)
+    {
+        $request->validate([
+            'property_ids' => 'required|array',
+            'property_ids.*' => 'exists:available_properties,id',
+            'email' => 'required|email',
+            'subject' => 'required|string|max:255',
+        ]);
+
+        $properties = AvailableProperty::whereIn('id', $request->property_ids)->get();
+
+        try {
+            \Illuminate\Support\Facades\Mail::to($request->email)->send(new \App\Mail\PropertyDealsMail($properties, $request->subject));
+            return response()->json(['success' => true, 'message' => 'Email sent successfully to ' . $request->email]);
+        } catch (\Exception $e) {
+            \Log::error('Bulk Email Error: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Failed to send email: ' . $e->getMessage()], 500);
+        }
+    }
 }
