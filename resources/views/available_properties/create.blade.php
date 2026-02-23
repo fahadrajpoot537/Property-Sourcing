@@ -305,6 +305,13 @@
                                                 <option value="">Select Strategy</option>
                                                 <option value="buy_to_sell" {{ old('investment_type') == 'buy_to_sell' ? 'selected' : '' }}>Buy to Sell</option>
                                                 <option value="rental" {{ old('investment_type') == 'rental' ? 'selected' : '' }}>Rental Property</option>
+                                                <option value="bmv_deal" {{ old('investment_type') == 'bmv_deal' ? 'selected' : '' }}>BMV Deal</option>
+                                                <option value="refurb_deal" {{ old('investment_type') == 'refurb_deal' ? 'selected' : '' }}>Refurb Deal</option>
+                                                <option value="hmo" {{ old('investment_type') == 'hmo' ? 'selected' : '' }}>HMO</option>
+                                                <option value="btl" {{ old('investment_type') == 'btl' ? 'selected' : '' }}>BTL (Buy to Let)</option>
+                                                <option value="brr" {{ old('investment_type') == 'brr' ? 'selected' : '' }}>BRR (Buy Refurb Refinance)</option>
+                                                <option value="r2r" {{ old('investment_type') == 'r2r' ? 'selected' : '' }}>R2R (Rent to Rent)</option>
+                                                <option value="serviced_accommodation" {{ old('investment_type') == 'serviced_accommodation' ? 'selected' : '' }}>Serviced Accommodation (SA)</option>
                                             </select>
 
                                             <div id="buy_to_sell_details" style="display: none;">

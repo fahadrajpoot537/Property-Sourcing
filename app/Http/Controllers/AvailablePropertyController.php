@@ -110,7 +110,7 @@ class AvailablePropertyController extends Controller
             'interest_rate' => 'nullable|numeric',
             'lender_name' => 'nullable|string',
             'monthly_payment' => 'nullable|numeric', // Mortgage monthly payment override
-            'investment_type' => 'nullable|in:buy_to_sell,rental',
+            'investment_type' => 'nullable|in:buy_to_sell,rental,bmv_deal,refurb_deal,hmo,btl,brr,r2r,serviced_accommodation',
             'sale_price' => 'nullable|numeric',
             'sale_date' => 'nullable|date',
             'monthly_rent' => 'nullable|numeric', // Rental income
@@ -242,7 +242,7 @@ class AvailablePropertyController extends Controller
             'interest_rate' => 'nullable|numeric',
             'lender_name' => 'nullable|string',
             'monthly_payment' => 'nullable|numeric',
-            'investment_type' => 'nullable|in:buy_to_sell,rental',
+            'investment_type' => 'nullable|in:buy_to_sell,rental,bmv_deal,refurb_deal,hmo,btl,brr,r2r,serviced_accommodation',
             'sale_price' => 'nullable|numeric',
             'sale_date' => 'nullable|date',
             'monthly_rent' => 'nullable|numeric',

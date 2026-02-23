@@ -51,6 +51,19 @@
                             Tailored Investment Opportunities (BTL, BRR & More)
                         </li>
                     </ul>
+
+                    <div class="d-flex flex-wrap gap-3">
+                        <a href="{{ route('register') }}?role=agent"
+                            class="btn btn-custom-pink btn-lg px-4 py-3 rounded-pill fw-bold shadow-sm d-flex align-items-center gap-2">
+                            <i class="bi bi-person-badge transition-hover"></i>
+                            Agent Signup
+                        </a>
+                        <a href="{{ route('register') }}?role=user"
+                            class="btn btn-outline-light btn-lg px-4 py-3 rounded-pill fw-bold d-flex align-items-center gap-2 transition-hover">
+                            <i class="bi bi-rocket-takeoff"></i>
+                            Investor Signup
+                        </a>
+                    </div>
                 </div>
 
                 <!-- Right Form -->
