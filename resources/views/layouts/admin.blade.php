@@ -444,12 +444,59 @@
         @media (max-width: 768px) {
             .admin-sidebar {
                 transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+
+            .admin-sidebar.active {
+                transform: translateX(0);
             }
 
             .admin-topbar,
             .admin-content {
                 margin-left: 0;
             }
+
+            .admin-topbar {
+                left: 0;
+                padding: 0 15px;
+            }
+
+            .sidebar-overlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 999;
+                backdrop-filter: blur(2px);
+            }
+
+            .sidebar-overlay.active {
+                display: block;
+            }
+
+            .mobile-toggle {
+                display: flex !important;
+            }
+        }
+
+        .mobile-toggle {
+            display: none;
+            width: 40px;
+            height: 40px;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: var(--primary-blue);
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .mobile-toggle:hover {
+            background-color: #f8f9fc;
         }
 
         /* User Dashboard Utilities */
@@ -494,6 +541,7 @@
 </head>
 
 <body>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
     <!-- Sidebar -->
     <div class="admin-sidebar">
@@ -516,7 +564,7 @@
                     <a href="{{ route('admin.users.index') }}"
                         class="{{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
                         <i class="bi bi-people-fill"></i>
-                        <span>User Accounts</span>
+                        <span>Investor Accounts</span>
                     </a>
                 @endif
 
@@ -671,6 +719,9 @@
 
     <!-- Topbar -->
     <div class="admin-topbar">
+        <div class="mobile-toggle me-3" id="sidebarToggle">
+            <i class="bi bi-list"></i>
+        </div>
         <div class="topbar-search position-relative">
             <i class="bi bi-search"></i>
             <input type="text" class="form-control" placeholder="Search...">
@@ -701,6 +752,25 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const toggle = document.getElementById('sidebarToggle');
+            const sidebar = document.querySelector('.admin-sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+
+            if (toggle && sidebar && overlay) {
+                toggle.addEventListener('click', function () {
+                    sidebar.classList.toggle('active');
+                    overlay.classList.toggle('active');
+                });
+
+                overlay.addEventListener('click', function () {
+                    sidebar.classList.remove('active');
+                    overlay.classList.remove('active');
+                });
+            }
+        });
+    </script>
     @stack('scripts')
 </body>
 

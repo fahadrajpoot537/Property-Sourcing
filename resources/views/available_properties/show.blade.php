@@ -249,10 +249,12 @@
                             </button>
 
                             <!-- Download Brochure Button -->
-                            <a href="{{ route('available-properties.brochure', $property->id) }}"
-                                class="btn btn-custom-blue w-100 py-3 mt-2 fw-bold">
-                                <i class="bi bi-file-earmark-pdf-fill me-2"></i>Download Brochure
-                            </a>
+                            @if(auth()->check() && auth()->user()->role !== 'user')
+                                <a href="{{ route('available-properties.brochure', $property->id) }}"
+                                    class="btn btn-custom-blue w-100 py-3 mt-2 fw-bold">
+                                    <i class="bi bi-file-earmark-pdf-fill me-2"></i>Download Brochure
+                                </a>
+                            @endif
                         </div>
                     </div>
                 </div>

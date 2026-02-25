@@ -52,6 +52,38 @@
                                 @error('phone') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
 
+                            <div class="col-md-6">
+                                <label class="form-label fw-600">What's your budget?</label>
+                                <input type="text" name="budget" class="form-control @error('budget') is-invalid @enderror"
+                                    value="{{ old('budget') }}" placeholder="e.g. £100,000 - £200,000">
+                                @error('budget') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-600">Investment Interest (Type of Deals)</label>
+                                <input type="text" name="investment_interest"
+                                    class="form-control @error('investment_interest') is-invalid @enderror"
+                                    value="{{ old('investment_interest') }}" placeholder="e.g. BMV Deal, HMO, BTL">
+                                @error('investment_interest') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                            </div>
+
+                            <div class="col-md-12 mt-3">
+                                <label class="form-label fw-600">Investor Location Interest <span
+                                        class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
+                                    <input type="text" id="investor_location" name="location"
+                                        class="form-control @error('location') is-invalid @enderror"
+                                        value="{{ old('location') }}" placeholder="Enter preferred city, area or postcode"
+                                        required>
+                                    <input type="hidden" id="latitude" name="latitude" value="{{ old('latitude') }}">
+                                    <input type="hidden" id="longitude" name="longitude" value="{{ old('longitude') }}">
+                                </div>
+                                <small class="text-muted mt-1 d-block">This location will be used to auto-match new property
+                                    deals.</small>
+                                @error('location') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                            </div>
+
                             <div class="col-md-12 mt-4">
                                 <label class="form-label fw-600 d-block">Property Types of Interest</label>
                                 <div class="row">
@@ -107,3 +139,29 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+    <script
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDtagAWzRL7h2Safzk7EwKK0x6v42RlsdI&libraries=places"></script>
+    <script>
+        function initAutocomplete() {
+            const input = document.getElementById('investor_location');
+            if (!input) return;
+
+            const options = {
+                componentRestrictions: { country: "gb" },
+                fields: ["geometry", "name", "formatted_address"],
+            };
+            const autocomplete = new google.maps.places.Autocomplete(input, options);
+
+            autocomplete.addListener("place_changed", () => {
+                const place = autocomplete.getPlace();
+                if (!place.geometry || !place.geometry.location) return;
+
+                document.getElementById('latitude').value = place.geometry.location.lat();
+                document.getElementById('longitude').value = place.geometry.location.lng();
+            });
+        }
+        document.addEventListener('DOMContentLoaded', initAutocomplete);
+    </script>
+@endpush

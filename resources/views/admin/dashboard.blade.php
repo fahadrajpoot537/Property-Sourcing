@@ -88,14 +88,7 @@
     <div class="content-card">
         <div class="card-header">
             <h5><i class="bi bi-list-ul me-2"></i>Recent Properties</h5>
-            <div class="d-flex gap-2">
-                <button class="btn btn-sm btn-admin-edit">
-                    <i class="bi bi-filter me-1"></i>Filter
-                </button>
-                <button class="btn btn-sm btn-admin-edit">
-                    <i class="bi bi-download me-1"></i>Export
-                </button>
-            </div>
+
         </div>
         <div class="card-body">
             <table class="table admin-table">

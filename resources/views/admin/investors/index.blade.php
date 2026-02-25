@@ -15,9 +15,14 @@
                     </ol>
                 </nav>
             </div>
-            <a href="{{ route('admin.investors.create') }}" class="btn btn-admin-pink">
-                <i class="bi bi-person-plus me-2"></i>Add New Investor
-            </a>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#importModal">
+                    <i class="bi bi-file-earmark-arrow-up me-2"></i>Import Investors
+                </button>
+                <a href="{{ route('admin.investors.create') }}" class="btn btn-admin-pink">
+                    <i class="bi bi-person-plus me-2"></i>Add New Investor
+                </a>
+            </div>
         </div>
     </div>
 
@@ -54,6 +59,9 @@
                         <tr>
                             <th>Investor Name</th>
                             <th>Contact Info</th>
+                            <th>Budget</th>
+                            <th>Investment Interest</th>
+                            <th>Location</th>
                             <th>Interests</th>
                             @if(auth()->user()->role === 'admin')
                                 <th>Added By</th>
@@ -71,6 +79,13 @@
                                 <td>
                                     <div><i class="bi bi-envelope me-1"></i>{{ $investor->email ?? 'N/A' }}</div>
                                     <div><i class="bi bi-phone me-1"></i>{{ $investor->phone ?? 'N/A' }}</div>
+                                </td>
+                                <td>{{ $investor->budget ?? 'N/A' }}</td>
+                                <td>{{ $investor->investment_interest ?? 'N/A' }}</td>
+                                <td>
+                                    <div class="small fw-600"><i
+                                            class="bi bi-geo-alt-fill text-danger me-1"></i>{{ $investor->location ?? 'N/A' }}
+                                    </div>
                                 </td>
                                 <td>
                                     @if($investor->property_interests)
@@ -133,4 +148,33 @@
             {{ $investors->links('pagination::bootstrap-5') }}
         </div>
     @endif
+@endsection
+@section('scripts')
+    <!-- Import Modal -->
+    <div class="modal fade" id="importModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content text-start">
+                <form action="{{ route('admin.investors.import') }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    <div class="modal-header">
+                        <h5 class="modal-title">Import Investors</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="small text-muted mb-3">Upload a CSV file with headers:
+                            <code>name, email, phone, budget, investment_interest, notes</code>
+                        </p>
+                        <div class="mb-3">
+                            <label class="form-label">Choose CSV File</label>
+                            <input type="file" name="file" class="form-control" accept=".csv" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Start Import</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 @endsection

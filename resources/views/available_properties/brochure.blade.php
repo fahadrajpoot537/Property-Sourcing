@@ -112,7 +112,17 @@
             font-size: 13px;
             color: #555;
             margin-bottom: 30px;
-            text-align: justify;
+        }
+
+        .description p {
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+
+        .description ul,
+        .description ol {
+            margin-bottom: 15px;
+            padding-left: 20px;
         }
 
         .image-gallery {
@@ -345,8 +355,17 @@
 
         <div class="section-title">Description</div>
         <div class="description">
-            {!! strip_tags($property->full_description) !!}
+            {!! $property->full_description !!}
         </div>
+
+        @if($property->latitude && $property->longitude)
+            <div class="section-title">Location Map</div>
+            <div style="margin-bottom: 30px; text-align: center;">
+                <img src="https://maps.googleapis.com/maps/api/staticmap?center={{ $property->latitude }},{{ $property->longitude }}&zoom=15&size=600x300&maptype=roadmap&markers=color:red%7C{{ $property->latitude }},{{ $property->longitude }}&key=AIzaSyDtagAWzRL7h2Safzk7EwKK0x6v42RlsdI"
+                    style="width: 100%; border-radius: 10px; border: 1px solid #eee;">
+                <div style="font-size: 11px; color: #888; margin-top: 5px;">{{ $property->location }}</div>
+            </div>
+        @endif
 
         @if($property->tenure_type == 'leasehold')
             <div class="section-title">Lease Details</div>
@@ -447,40 +466,56 @@
         @endif
 
         <div class="user-contact">
-            <h4>Contact the Agent</h4>
-            <div class="contact-info">
-                <div class="contact-item"><strong>Name:</strong> {{ $user->name }}</div>
-                <div class="contact-item"><strong>Email:</strong> {{ $user->email }}</div>
-                @if($user->phone)
-                    <div class="contact-item"><strong>Phone:</strong> {{ $user->phone }}</div>
-                @endif
+            <h4 style="border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px;">Contact Information
+            </h4>
+            <table width="100%" cellspacing="0" cellpadding="0">
+                <tr>
+                    <td width="60%" style="vertical-align: top;">
+                        <div class="contact-info">
+                            <div class="contact-item" style="font-size: 16px; font-weight: bold; color: #1E4072;">
+                                {{ $user->name }}
+                            </div>
+                            <div class="contact-item" style="color: #666;">{{ $user->email }}</div>
+                            @if($user->phone)
+                                <div class="contact-item" style="color: #666;">{{ $user->phone }}</div>
+                            @endif
+                        </div>
+                    </td>
+                    <td width="40%" style="text-align: right; vertical-align: middle;">
+                        <img src="{{ public_path('logo.png') }}" style="height: 40px; opacity: 0.8;">
+                    </td>
+                </tr>
+            </table>
 
-                <div style="margin-top: 20px;">
-                    <table width="100%" cellspacing="0" cellpadding="0">
-                        <tr>
-                            <td width="32%">
-                                <a href="mailto:{{ $user->email }}"
-                                    style="display: inline-block; padding: 10px 10px; background-color: #1E4072; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 11px; text-align: center; width: 90%;">
-                                    Email Agent
+            <div style="margin-top: 25px;">
+                <table width="100%" cellspacing="10" cellpadding="0" style="margin-left: -10px; margin-right: -10px;">
+                    <tr>
+                        <td width="33%">
+                            <a href="mailto:{{ $user->email }}"
+                                style="display: block; padding: 12px 5px; background-color: #1E4072; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 12px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                                <span style="font-size: 14px;">✉</span> Email
+                            </a>
+                        </td>
+                        @if($user->phone)
+                            <td width="33%">
+                                <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $user->phone) }}"
+                                    style="display: block; padding: 12px 5px; background-color: #25D366; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 12px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                                    <span style="font-size: 14px;">✆</span> WhatsApp
                                 </a>
                             </td>
-                            @if($user->phone)
-                                <td width="32%">
-                                    <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $user->phone) }}"
-                                        style="display: inline-block; padding: 10px 10px; background-color: #25D366; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 11px; text-align: center; width: 90%;">
-                                        WhatsApp
-                                    </a>
-                                </td>
-                                <td width="32%">
-                                    <a href="tel:{{ $user->phone }}"
-                                        style="display: inline-block; padding: 10px 10px; background-color: #F95CA8; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 11px; text-align: center; width: 90%;">
-                                        Call Now
-                                    </a>
-                                </td>
-                            @endif
-                        </tr>
-                    </table>
-                </div>
+                            <td width="33%">
+                                <a href="tel:{{ $user->phone }}"
+                                    style="display: block; padding: 12px 5px; background-color: #F95CA8; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 12px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                                    <span style="font-size: 14px;">☎</span> Call Now
+                                </a>
+                            </td>
+                        @endif
+                    </tr>
+                </table>
+            </div>
+            <div
+                style="margin-top: 15px; font-size: 10px; color: #999; text-align: center; border-top: 1px solid #fafafa; padding-top: 10px;">
+                Download provided by Property Sourcing Group. Connect with our experts today.
             </div>
         </div>
     </div>

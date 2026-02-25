@@ -136,15 +136,17 @@
                                                 </option>
                                                 <option value="approved" {{ $property->status == 'approved' ? 'selected' : '' }}>
                                                     Approved</option>
+                                                <option value="under offer" {{ $property->status == 'under offer' ? 'selected' : '' }}>Under Offer</option>
                                                 <option value="disapproved" {{ $property->status == 'disapproved' ? 'selected' : '' }}>Disapproved</option>
                                                 <option value="sold out" {{ $property->status == 'sold out' ? 'selected' : '' }}>Sold
                                                     Out</option>
                                             @else
                                                 <option value="pending" {{ $property->status == 'pending' ? 'selected' : '' }}>Pending
                                                 </option>
+                                                <option value="under offer" {{ $property->status == 'under offer' ? 'selected' : '' }}>Under Offer</option>
                                                 <option value="sold out" {{ $property->status == 'sold out' ? 'selected' : '' }}>Sold
                                                     Out</option>
-                                                @if(!in_array($property->status, ['pending', 'sold out']))
+                                                @if(!in_array($property->status, ['pending', 'sold out', 'under offer']))
                                                     <option value="{{ $property->status }}" selected disabled>
                                                         {{ ucfirst($property->status) }}
                                                     </option>
@@ -163,12 +165,21 @@
                                             class="btn btn-sm btn-admin-edit" title="Edit">
                                             <i class="bi bi-pencil"></i>
                                         </a>
+                                        <button type="button" class="btn btn-sm btn-warning text-white btn-notify-agents"
+                                            title="Share with Agents" data-property-id="{{ $property->id }}"
+                                            data-property-headline="{{ $property->headline }}">
+                                            <i class="bi bi-megaphone-fill"></i>
+                                        </button>
                                         @if(auth()->user()->role === 'admin')
                                             <a href="{{ route('admin.property-offers.index', $property->id) }}"
                                                 class="btn btn-sm btn-info text-white" title="View Offers">
                                                 <i class="bi bi-tag-fill"></i>
                                             </a>
                                         @endif
+                                        <a href="{{ route('admin.available-properties.social-posts', $property->id) }}"
+                                            class="btn btn-sm btn-dark" title="Instagram Post">
+                                            <i class="bi bi-instagram"></i>
+                                        </a>
                                         <form action="{{ route('admin.available-properties.destroy', $property->id) }}"
                                             method="POST" class="d-inline"
                                             onsubmit="return confirm('Are you sure you want to delete this property?');">
@@ -218,11 +229,13 @@
                         @csrf
                         <div class="mb-3">
                             <label class="form-label fw-600">Recipient Email Address</label>
-                            <input type="email" id="recipientEmail" class="form-control" placeholder="investor@example.com" required>
+                            <input type="email" id="recipientEmail" class="form-control" placeholder="investor@example.com"
+                                required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-600">Email Subject</label>
-                            <input type="text" id="emailSubject" class="form-control" value="Exclusive Property Deals for You" required>
+                            <input type="text" id="emailSubject" class="form-control"
+                                value="Exclusive Property Deals for You" required>
                         </div>
                         <div id="emailPropertiesCount" class="small text-muted mb-3">
                             Sending <span id="selectedCountDisplay">0</span> selected properties.
@@ -230,7 +243,8 @@
                         <div class="d-grid">
                             <button type="submit" id="btnSubmitEmail" class="btn btn-admin-pink py-2">
                                 <span id="btnText">Send Email</span>
-                                <span id="btnLoader" class="spinner-border spinner-border-sm ms-2" style="display: none;"></span>
+                                <span id="btnLoader" class="spinner-border spinner-border-sm ms-2"
+                                    style="display: none;"></span>
                             </button>
                         </div>
                     </form>
@@ -239,14 +253,57 @@
         </div>
     </div>
 
+    <!-- Agent Notification Modal -->
+    <div class="modal fade" id="notifyAgentsModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-warning text-white text-start">
+                    <h5 class="modal-title"><i class="bi bi-megaphone-fill me-2"></i>Notify Agents</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="notifyAgentsForm" method="POST">
+                    @csrf
+                    <div class="modal-body p-4 text-start">
+                        <p class="small text-muted mb-3" id="notifyPropertyHeadline">Property: </p>
+                        <label class="form-label fw-600 mb-2">Select Agents to Notify:</label>
+
+                        <div class="mb-3 text-start">
+                            <div class="form-check mb-2 pb-2 border-bottom">
+                                <input class="form-check-input" type="checkbox" id="selectAllAgents">
+                                <label class="form-check-label fw-bold" for="selectAllAgents">Select All Agents</label>
+                            </div>
+                            <div style="max-height: 250px; overflow-y: auto;">
+                                @forelse($otherAgents as $agent)
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input agent-checkbox" type="checkbox" name="agent_ids[]"
+                                            value="{{ $agent->id }}" id="agent_{{ $agent->id }}">
+                                        <label class="form-check-label" for="agent_{{ $agent->id }}">
+                                            {{ $agent->name }} <span class="small text-muted">({{ $agent->email }})</span>
+                                        </label>
+                                    </div>
+                                @empty
+                                    <p class="text-center py-3 text-muted">No other agents found.</p>
+                                @endforelse
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-warning text-white px-4">Send Notifications</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const selectAll = document.getElementById('selectAllProperties');
             const bulkBtn = document.getElementById('btnSendBulkEmail');
             const emailModalElem = document.getElementById('emailModal');
             let emailModalInstance = null;
-            if(emailModalElem && typeof bootstrap !== 'undefined') emailModalInstance = new bootstrap.Modal(emailModalElem);
-            
+            if (emailModalElem && typeof bootstrap !== 'undefined') emailModalInstance = new bootstrap.Modal(emailModalElem);
+
             const bulkEmailForm = document.getElementById('bulkEmailForm');
             const btnSubmitEmail = document.getElementById('btnSubmitEmail');
             const btnText = document.getElementById('btnText');
@@ -256,12 +313,40 @@
             function updateBulkBtn() {
                 const checkboxes = document.querySelectorAll('.property-checkbox:checked');
                 const checkedCount = checkboxes.length;
-                if(bulkBtn) bulkBtn.style.display = checkedCount > 0 ? 'inline-block' : 'none';
-                if(selectedCountDisplay) selectedCountDisplay.textContent = checkedCount;
+                if (bulkBtn) bulkBtn.style.display = checkedCount > 0 ? 'inline-block' : 'none';
+                if (selectedCountDisplay) selectedCountDisplay.textContent = checkedCount;
             }
 
-            if(selectAll) {
-                selectAll.addEventListener('change', function() {
+            // Notify Agents Modal Logic
+            const notifyBtns = document.querySelectorAll('.btn-notify-agents');
+            const notifyModalElem = document.getElementById('notifyAgentsModal');
+            let notifyModalInstance = null;
+            if (notifyModalElem && typeof bootstrap !== 'undefined') notifyModalInstance = new bootstrap.Modal(notifyModalElem);
+
+            const notifyForm = document.getElementById('notifyAgentsForm');
+            const selectAllAgents = document.getElementById('selectAllAgents');
+            const agentCheckboxes = document.querySelectorAll('.agent-checkbox');
+
+            notifyBtns.forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const propId = this.dataset.propertyId;
+                    const headline = this.dataset.propertyHeadline;
+
+                    document.getElementById('notifyPropertyHeadline').textContent = 'Property: ' + headline;
+                    notifyForm.action = `/admin/available-properties/${propId}/notify-agents`;
+
+                    if (notifyModalInstance) notifyModalInstance.show();
+                });
+            });
+
+            if (selectAllAgents) {
+                selectAllAgents.addEventListener('change', function () {
+                    agentCheckboxes.forEach(cb => cb.checked = this.checked);
+                });
+            }
+
+            if (selectAll) {
+                selectAll.addEventListener('change', function () {
                     const checkboxes = document.querySelectorAll('.property-checkbox');
                     checkboxes.forEach(cb => {
                         cb.checked = selectAll.checked;
@@ -271,12 +356,12 @@
             }
 
             // Using event delegation for checkboxes
-            document.addEventListener('change', function(e) {
+            document.addEventListener('change', function (e) {
                 if (e.target.classList.contains('property-checkbox')) {
                     updateBulkBtn();
-                    
+
                     // Update checkAll state
-                    if(selectAll) {
+                    if (selectAll) {
                         const allCheckboxes = document.querySelectorAll('.property-checkbox');
                         const allChecked = document.querySelectorAll('.property-checkbox:checked');
                         selectAll.checked = allCheckboxes.length === allChecked.length;
@@ -284,22 +369,22 @@
                 }
             });
 
-            if(bulkBtn) {
-                bulkBtn.addEventListener('click', function() {
+            if (bulkBtn) {
+                bulkBtn.addEventListener('click', function () {
                     updateBulkBtn();
-                    if(emailModalInstance) emailModalInstance.show();
+                    if (emailModalInstance) emailModalInstance.show();
                 });
             }
 
-            if(bulkEmailForm) {
-                bulkEmailForm.addEventListener('submit', function(e) {
+            if (bulkEmailForm) {
+                bulkEmailForm.addEventListener('submit', function (e) {
                     e.preventDefault();
 
                     const propertyIds = Array.from(document.querySelectorAll('.property-checkbox:checked')).map(cb => cb.value);
                     const email = document.getElementById('recipientEmail').value;
                     const subject = document.getElementById('emailSubject').value;
 
-                    if(propertyIds.length === 0) {
+                    if (propertyIds.length === 0) {
                         alert('Please select at least one property.');
                         return;
                     }
@@ -321,29 +406,29 @@
                             subject: subject
                         })
                     })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            alert(data.message);
-                            if(emailModalInstance) emailModalInstance.hide();
-                            bulkEmailForm.reset();
-                            document.querySelectorAll('.property-checkbox').forEach(cb => cb.checked = false);
-                            if(selectAll) selectAll.checked = false;
-                            updateBulkBtn();
-                        } else {
-                            alert('Error: ' + data.message);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        alert('An error occurred while sending the email.');
-                    })
-                    .finally(() => {
-                        // Re-enable UI
-                        btnSubmitEmail.disabled = false;
-                        btnText.textContent = 'Send Email';
-                        btnLoader.style.display = 'none';
-                    });
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                alert(data.message);
+                                if (emailModalInstance) emailModalInstance.hide();
+                                bulkEmailForm.reset();
+                                document.querySelectorAll('.property-checkbox').forEach(cb => cb.checked = false);
+                                if (selectAll) selectAll.checked = false;
+                                updateBulkBtn();
+                            } else {
+                                alert('Error: ' + data.message);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('An error occurred while sending the email.');
+                        })
+                        .finally(() => {
+                            // Re-enable UI
+                            btnSubmitEmail.disabled = false;
+                            btnText.textContent = 'Send Email';
+                            btnLoader.style.display = 'none';
+                        });
                 });
             }
         });

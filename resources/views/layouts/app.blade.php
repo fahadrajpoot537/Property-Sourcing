@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="dns-prefetch" href="https://images.unsplash.com">
     <link rel="icon" type="image/png" href="{{ asset('logo.png') }}">
-
+    <meta name="google-site-verification" content="k_mil_w23PfACiQ0DlWn6XUopC6IWpvztJxspA4hUUs" />
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Google Fonts -->
@@ -598,8 +598,8 @@
                         <!-- Phone -->
                         <div class="d-flex align-items-center">
                             <i class="bi bi-telephone-fill me-2 text-pink small"></i>
-                            <a href="tel:02034680480"
-                                class="fw-bold text-blue text-decoration-none small">02034680480</a>
+                            <a href="tel:0203 468 0480" class="fw-bold text-blue text-decoration-none small">0203 468
+                                0480</a>
                         </div>
 
                         <!-- Email -->
@@ -778,7 +778,7 @@
                             13 0AD</li>
                         <li class="d-flex mb-3 align-items-center">
                             <i class="bi bi-telephone text-pink me-3"></i>
-                            <a href="tel:02034680480" class="text-black text-decoration-none">02034680480</a>
+                            <a href="tel:0203 468 0480" class="text-black text-decoration-none">0203 468 0480</a>
                         </li>
                         <li class="d-flex mb-3 align-items-center">
                             <img src="{{ asset('ph.png') }}" alt="Phone" class="me-3 pink-icon"

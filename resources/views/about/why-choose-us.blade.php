@@ -144,13 +144,13 @@
             <div class="row g-5 text-center">
                 <div class="col-md-4">
                     <div class="stat-item">
-                        <h2 class="display-3 fw-bold text-blue mb-2">700+</h2>
+                        <h2 class="display-3 fw-bold text-blue mb-2">100+</h2>
                         <p class="text-secondary fw-bold text-uppercase">Properties Sold</p>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="stat-item">
-                        <h2 class="display-3 fw-bold text-blue mb-2">100+</h2>
+                        <h2 class="display-3 fw-bold text-blue mb-2">20</h2>
                         <p class="text-secondary fw-bold text-uppercase">Years of Experience</p>
                     </div>
                 </div>

@@ -8,9 +8,15 @@ class Investor extends Model
 {
     protected $fillable = [
         'agent_id',
+        'user_id',
         'name',
         'email',
         'phone',
+        'budget',
+        'investment_interest',
+        'location',
+        'latitude',
+        'longitude',
         'property_interests',
         'notes',
     ];

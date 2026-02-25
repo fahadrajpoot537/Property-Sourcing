@@ -25,7 +25,9 @@ class User extends Authenticatable
         'email',
         'role',
         'password',
+        'phone',
         'phone_number',
+        'address',
         'address_line1',
         'address_line2',
         'city',
@@ -35,6 +37,9 @@ class User extends Authenticatable
         'company_registration',
         'about_me',
         'investment_credits',
+        'investment_type',
+        'status',
+        'is_active',
     ];
 
     public function completedProperties()

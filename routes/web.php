@@ -105,6 +105,8 @@ Route::prefix('admin')->middleware(['auth', 'agent'])->name('admin.')->group(fun
     Route::post('/available-properties/{id}/status', [App\Http\Controllers\AvailablePropertyController::class, 'updateStatus'])->name('available-properties.update-status');
     Route::delete('/available-properties/{id}', [App\Http\Controllers\AvailablePropertyController::class, 'destroy'])->name('available-properties.destroy');
     Route::post('/available-properties/send-bulk-email', [App\Http\Controllers\AvailablePropertyController::class, 'sendBulkEmail'])->name('available-properties.send-bulk-email');
+    Route::post('/available-properties/{id}/notify-agents', [App\Http\Controllers\AvailablePropertyController::class, 'notifyAgents'])->name('available-properties.notify-agents');
+    Route::get('/available-properties/{id}/social-posts', [App\Http\Controllers\AvailablePropertyController::class, 'showSocialPosts'])->name('available-properties.social-posts');
 
 
     // Inquiry Management
@@ -120,6 +122,7 @@ Route::prefix('admin')->middleware(['auth', 'agent'])->name('admin.')->group(fun
     Route::post('/offers/{offer}/complete', [\App\Http\Controllers\Admin\PropertyOfferController::class, 'complete'])->name('property-offers.complete');
 
     // Investor Management (Shared: Admin & Agent)
+    Route::post('investors/import', [\App\Http\Controllers\Admin\InvestorController::class, 'import'])->name('investors.import');
     Route::resource('investors', \App\Http\Controllers\Admin\InvestorController::class);
 
     // Admin-Only Routes

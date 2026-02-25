@@ -7,11 +7,11 @@
     <div class="page-header">
         <div class="d-flex justify-content-between align-items-center">
             <div>
-                <h2>Registered Users</h2>
+                <h2>Registered Investors</h2>
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
-                        <li class="breadcrumb-item active">Users</li>
+                        <li class="breadcrumb-item active">Investors</li>
                     </ol>
                 </nav>
             </div>
@@ -24,7 +24,7 @@
             <div class="stats-card blue">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <p class="text-muted mb-1 small">Total Users</p>
+                        <p class="text-muted mb-1 small">Total Investors</p>
                         <h3 class="mb-0">{{ \App\Models\User::count() }}</h3>
                     </div>
                     <div class="icon">
@@ -50,7 +50,7 @@
             <div class="stats-card success">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <p class="text-muted mb-1 small">Approved Users</p>
+                        <p class="text-muted mb-1 small">Approved Investors</p>
                         <h3 class="mb-0">{{ \App\Models\User::where('status', 1)->count() }}</h3>
                     </div>
                     <div class="icon">
@@ -72,7 +72,7 @@
     <!-- Users Table -->
     <div class="content-card">
         <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-3">
-            <h5 class="mb-0"><i class="bi bi-person-lines-fill me-2"></i>User Accounts</h5>
+            <h5 class="mb-0"><i class="bi bi-person-lines-fill me-2"></i>Investor Accounts</h5>
             
             <!-- Filters -->
             <form action="{{ route('admin.users.index') }}" method="GET" class="d-flex flex-wrap gap-2">
@@ -83,7 +83,7 @@
                 
                 <select name="role" class="form-select form-select-sm" style="width: 130px;" onchange="this.form.submit()">
                     <option value="">All Roles</option>
-                    <option value="user" {{ request('role') == 'user' ? 'selected' : '' }}>User</option>
+                    <option value="user" {{ request('role') == 'user' ? 'selected' : '' }}>Investor</option>
                     <option value="agent" {{ request('role') == 'agent' ? 'selected' : '' }}>Agent</option>
                     <option value="admin" {{ request('role') == 'admin' ? 'selected' : '' }}>Admin</option>
                 </select>
@@ -104,7 +104,7 @@
                 <table class="table table-hover align-middle mb-0">
                     <thead class="bg-light text-muted small text-uppercase">
                         <tr>
-                            <th class="ps-4">User Details</th>
+                            <th class="ps-4">Investor Details</th>
                             <th>Role</th>
                             <th>Contact</th>
                             <th>Investment Interest</th>
@@ -129,7 +129,7 @@
                                 </td>
                                 <td>
                                     <span class="badge {{ $user->role === 'admin' ? 'bg-danger' : ($user->role === 'agent' ? 'bg-primary' : 'bg-secondary') }} text-capitalize">
-                                        {{ $user->role }}
+                                        {{ $user->role === 'user' ? 'Investor' : $user->role }}
                                     </span>
                                 </td>
                                 <td>
@@ -210,7 +210,7 @@
                                                             @csrf
                                                             <input type="hidden" name="role" value="user">
                                                             <button type="submit" class="dropdown-item py-2">
-                                                                <i class="bi bi-person text-secondary me-2"></i>Make Standard User
+                                                                <i class="bi bi-person text-secondary me-2"></i>Make Investor
                                                             </button>
                                                         </form>
                                                     </li>

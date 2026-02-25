@@ -73,7 +73,12 @@ class AvailablePropertyController extends Controller
             ->latest();
 
         $properties = $query->paginate(10);
-        return view('admin.available_properties.index', compact('properties'));
+
+        $otherAgents = \App\Models\User::where('role', 'agent')
+            ->where('id', '!=', auth()->id())
+            ->get();
+
+        return view('admin.available_properties.index', compact('properties', 'otherAgents'));
     }
 
     public function create()
@@ -86,7 +91,7 @@ class AvailablePropertyController extends Controller
         return view('available_properties.create', compact('propertyTypes', 'marketingPurposes', 'unitTypes', 'features'));
     }
 
-    public function store(Request $request)
+    public function store(Request $request, \App\Services\PropertyMatchingService $matchingService)
     {
         $request->validate([
             'headline' => 'required|string|max:255',
@@ -99,7 +104,7 @@ class AvailablePropertyController extends Controller
             'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'gallery_images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'video' => 'nullable|mimetypes:video/mp4,video/quicktime,video/x-msvideo,video/x-matroska|max:20480',
-            'status' => 'nullable|string|in:pending,approved,disapproved,sold out',
+            'status' => 'nullable|string|in:pending,approved,disapproved,sold out,under offer',
             'features' => 'nullable|array',
             'features.*' => 'exists:features,id',
             // New Fields Validation
@@ -143,7 +148,7 @@ class AvailablePropertyController extends Controller
         if (auth()->user()->role === 'admin') {
             $data['status'] = $request->status ?? 'pending';
         } else {
-            if ($request->has('status') && in_array($request->status, ['pending', 'sold out'])) {
+            if ($request->has('status') && in_array($request->status, ['pending', 'sold out', 'under offer'])) {
                 $data['status'] = $request->status;
             } else {
                 $data['status'] = 'pending';
@@ -169,6 +174,9 @@ class AvailablePropertyController extends Controller
         $data['user_id'] = Auth::id();
 
         $property = AvailableProperty::create($data);
+
+        // Find and notify matches
+        $matchingService->findMatchesForProperty($property);
 
         // Sync features
         if ($request->has('features')) {
@@ -231,7 +239,7 @@ class AvailablePropertyController extends Controller
             'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'gallery_images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'video' => 'nullable|mimetypes:video/mp4,video/quicktime,video/x-msvideo,video/x-matroska|max:20480', // 20MB max
-            'status' => 'nullable|string|in:pending,approved,disapproved,sold out',
+            'status' => 'nullable|string|in:pending,approved,disapproved,sold out,under offer',
             'features' => 'nullable|array',
             'features.*' => 'exists:features,id',
             // New Fields Validation
@@ -405,14 +413,14 @@ class AvailablePropertyController extends Controller
         $property = AvailableProperty::findOrFail($id);
 
         $request->validate([
-            'status' => 'required|in:pending,approved,disapproved,sold out'
+            'status' => 'required|in:pending,approved,disapproved,sold out,under offer'
         ]);
 
         if (auth()->user()->role === 'admin') {
             $property->status = $request->status;
         } else {
-            // Agents can only set pending or sold out
-            if (in_array($request->status, ['pending', 'sold out'])) {
+            // Agents can only set pending, sold out or under offer
+            if (in_array($request->status, ['pending', 'sold out', 'under offer'])) {
                 $property->status = $request->status;
             } else {
                 return back()->with('error', 'You are not authorized to set this status.');
@@ -423,23 +431,49 @@ class AvailablePropertyController extends Controller
 
         return back()->with('success', 'Property status updated successfully');
     }
-    public function sendBulkEmail(Request $request)
+    public function notifyAgents(Request $request, $id)
     {
-        $request->validate([
-            'property_ids' => 'required|array',
-            'property_ids.*' => 'exists:available_properties,id',
-            'email' => 'required|email',
-            'subject' => 'required|string|max:255',
-        ]);
+        $property = AvailableProperty::findOrFail($id);
+        $sender = auth()->user();
 
-        $properties = AvailableProperty::whereIn('id', $request->property_ids)->get();
+        $query = \App\Models\User::where('role', 'agent')
+            ->where('id', '!=', $sender->id);
+
+        if ($request->has('agent_ids')) {
+            $query->whereIn('id', $request->agent_ids);
+        }
+
+        $agents = $query->get();
+
+        if ($agents->isEmpty()) {
+            return back()->with('info', 'No agents selected or found to notify.');
+        }
 
         try {
-            \Illuminate\Support\Facades\Mail::to($request->email)->send(new \App\Mail\PropertyDealsMail($properties, $request->subject));
-            return response()->json(['success' => true, 'message' => 'Email sent successfully to ' . $request->email]);
+            foreach ($agents as $agent) {
+                if ($agent->email) {
+                    \Illuminate\Support\Facades\Mail::to($agent->email)
+                        ->send(new \App\Mail\AgentPropertyNotificationMail($property, $sender));
+                }
+            }
+            return back()->with('success', 'Notification sent to ' . $agents->count() . ' agent(s) successfully.');
         } catch (\Exception $e) {
-            \Log::error('Bulk Email Error: ' . $e->getMessage());
-            return response()->json(['success' => false, 'message' => 'Failed to send email: ' . $e->getMessage()], 500);
+            \Log::error('Agent Notification Error: ' . $e->getMessage());
+            return back()->with('error', 'Failed to send notifications: ' . $e->getMessage());
         }
+    }
+
+    public function showSocialPosts($id)
+    {
+        $property = AvailableProperty::findOrFail($id);
+
+        // If not generated or forced refresh, trigger generation
+        if (!$property->generated_posts || request()->has('refresh')) {
+            $generator = new \App\Services\PropertyImageGeneratorService();
+            $generator->generateCarousel($property);
+            $property->refresh();
+        }
+
+        return view('admin.available_properties.social_posts', compact('property'));
     }
 }
