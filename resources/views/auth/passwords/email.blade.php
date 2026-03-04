@@ -5,20 +5,23 @@
         <div class="row justify-content-center">
             <div class="col-md-6 col-lg-5">
                 <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
-                    <div class="card-header bg-white border-0 pt-4 text-center">
-                        <h2 class="fw-bold text-blue">Reset Password</h2>
-                        <p class="text-muted small">Enter your email address and we'll send you a link to reset your
+                    <div class="card-header border-0 pt-4 text-center"
+                        style="background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-pink) 100%);">
+                        <h2 class="fw-bold text-white">Reset Password</h2>
+                        <p class="text-white-50 small">Enter your email address and we'll send you a link to reset your
                             password.</p>
                     </div>
                     <div class="card-body p-4 p-md-5 pt-2">
                         @if (session('success'))
-                            <div class="alert alert-success border-0 shadow-sm small mb-4">
+                            <div class="alert alert-success border-0 shadow-sm small mb-4"
+                                style="background-color: rgba(76, 215, 246, 0.15); color: #1E4072;">
                                 {{ session('success') }}
                             </div>
                         @endif
 
                         @if ($errors->any())
-                            <div class="alert alert-danger border-0 shadow-sm small mb-4">
+                            <div class="alert alert-danger border-0 shadow-sm small mb-4"
+                                style="background-color: rgba(249, 92, 168, 0.15); color: #1E4072;">
                                 @foreach ($errors->all() as $error)
                                     <div class="mb-0">{{ $error }}</div>
                                 @endforeach
@@ -28,7 +31,8 @@
                         <form action="{{ route('password.email') }}" method="POST">
                             @csrf
                             <div class="mb-4">
-                                <label class="form-label small fw-600 text-uppercase tracking-wider">Email Address</label>
+                                <label class="form-label small fw-600 tracking-wider" style="color: #1E4072;">Email
+                                    Address</label>
                                 <div class="input-group-modern">
                                     <i class="bi bi-envelope icon"></i>
                                     <input type="email" name="email" class="form-control" placeholder="your@email.com"
@@ -80,7 +84,7 @@
         .input-group-modern .form-control:focus {
             background-color: #fff;
             border-color: var(--primary-pink);
-            box-shadow: 0 0 0 4px rgba(249, 92, 168, 0.1);
+            box-shadow: 0 0 0 4px rgba(249, 92, 168, 0.2);
         }
 
         .fw-600 {

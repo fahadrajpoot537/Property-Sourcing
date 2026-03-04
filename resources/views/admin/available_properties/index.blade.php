@@ -176,10 +176,6 @@
                                                 <i class="bi bi-tag-fill"></i>
                                             </a>
                                         @endif
-                                        <a href="{{ route('admin.available-properties.social-posts', $property->id) }}"
-                                            class="btn btn-sm btn-dark" title="Instagram Post">
-                                            <i class="bi bi-instagram"></i>
-                                        </a>
                                         <form action="{{ route('admin.available-properties.destroy', $property->id) }}"
                                             method="POST" class="d-inline"
                                             onsubmit="return confirm('Are you sure you want to delete this property?');">
@@ -228,23 +224,48 @@
                     <form id="bulkEmailForm">
                         @csrf
                         <div class="mb-3">
-                            <label class="form-label fw-600">Recipient Email Address</label>
-                            <input type="email" id="recipientEmail" class="form-control" placeholder="investor@example.com"
-                                required>
+                            <label class="form-label fw-600">Recipients:</label>
+                            
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="emailAllAgents" name="send_to_all_agents" value="1">
+                                <label class="form-check-label" for="emailAllAgents">All Agents</label>
+                            </div>
+
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="showSelectAgents">
+                                <label class="form-check-label" for="showSelectAgents">Specific Agents</label>
+                            </div>
+
+                            <div id="selectAgentsDiv" style="display: none; max-height: 150px; overflow-y: auto; margin-left: 25px; margin-bottom: 10px;">
+                                @foreach($otherAgents as $agent)
+                                    <div class="form-check mb-1">
+                                        <input class="form-check-input agent-email-checkbox" type="checkbox" name="agent_ids[]" value="{{ $agent->id }}" id="bulk_agent_{{ $agent->id }}">
+                                        <label class="form-check-label small" for="bulk_agent_{{ $agent->id }}">
+                                            {{ $agent->name }}
+                                        </label>
+                                    </div>
+                                @endforeach
+                            </div>
+
+                            <div class="mt-3">
+                                <label class="form-label small fw-bold">Custom Email(s) (comma separated)</label>
+                                <textarea name="custom_emails" id="customEmails" class="form-control" rows="2" placeholder="investor1@example.com, investor2@example.com"></textarea>
+                            </div>
                         </div>
+
                         <div class="mb-3">
-                            <label class="form-label fw-600">Email Subject</label>
-                            <input type="text" id="emailSubject" class="form-control"
-                                value="Exclusive Property Deals for You" required>
+                            <label class="form-label fw-600">Message (Optional)</label>
+                            <textarea id="emailMessage" class="form-control" rows="3" placeholder="Hello, check out these exclusive property deals..."></textarea>
                         </div>
+
                         <div id="emailPropertiesCount" class="small text-muted mb-3">
                             Sending <span id="selectedCountDisplay">0</span> selected properties.
                         </div>
+
                         <div class="d-grid">
                             <button type="submit" id="btnSubmitEmail" class="btn btn-admin-pink py-2">
-                                <span id="btnText">Send Email</span>
-                                <span id="btnLoader" class="spinner-border spinner-border-sm ms-2"
-                                    style="display: none;"></span>
+                                <span id="btnText">Send Deals Now</span>
+                                <span id="btnLoader" class="spinner-border spinner-border-sm ms-2" style="display: none;"></span>
                             </button>
                         </div>
                     </form>
@@ -377,15 +398,31 @@
             }
 
             if (bulkEmailForm) {
+                // Toggle Specific Agents
+                const showSelectAgents = document.getElementById('showSelectAgents');
+                const selectAgentsDiv = document.getElementById('selectAgentsDiv');
+                if(showSelectAgents) {
+                    showSelectAgents.addEventListener('change', function() {
+                        selectAgentsDiv.style.display = this.checked ? 'block' : 'none';
+                    });
+                }
+
                 bulkEmailForm.addEventListener('submit', function (e) {
                     e.preventDefault();
 
                     const propertyIds = Array.from(document.querySelectorAll('.property-checkbox:checked')).map(cb => cb.value);
-                    const email = document.getElementById('recipientEmail').value;
-                    const subject = document.getElementById('emailSubject').value;
+                    const agentIds = Array.from(document.querySelectorAll('.agent-email-checkbox:checked')).map(cb => cb.value);
+                    const allAgents = document.getElementById('emailAllAgents').checked;
+                    const customEmails = document.getElementById('customEmails').value;
+                    const message = document.getElementById('emailMessage').value;
 
                     if (propertyIds.length === 0) {
                         alert('Please select at least one property.');
+                        return;
+                    }
+
+                    if (!allAgents && agentIds.length === 0 && customEmails.trim() === '') {
+                        alert('Please select at least one recipient.');
                         return;
                     }
 
@@ -402,8 +439,10 @@
                         },
                         body: JSON.stringify({
                             property_ids: propertyIds,
-                            email: email,
-                            subject: subject
+                            agent_ids: agentIds,
+                            send_to_all_agents: allAgents,
+                            custom_emails: customEmails,
+                            message: message
                         })
                     })
                         .then(response => response.json())
@@ -412,6 +451,7 @@
                                 alert(data.message);
                                 if (emailModalInstance) emailModalInstance.hide();
                                 bulkEmailForm.reset();
+                                if(selectAgentsDiv) selectAgentsDiv.style.display = 'none';
                                 document.querySelectorAll('.property-checkbox').forEach(cb => cb.checked = false);
                                 if (selectAll) selectAll.checked = false;
                                 updateBulkBtn();
@@ -426,7 +466,7 @@
                         .finally(() => {
                             // Re-enable UI
                             btnSubmitEmail.disabled = false;
-                            btnText.textContent = 'Send Email';
+                            btnText.textContent = 'Send Deals Now';
                             btnLoader.style.display = 'none';
                         });
                 });

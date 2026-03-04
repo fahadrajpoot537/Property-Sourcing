@@ -9,14 +9,19 @@
         <div class="row g-4">
             <!-- Main Content -->
             <div class="col-lg-8">
-                <!-- Header -->
                 <div class="mb-4">
                     <span class="badge bg-pink mb-2">{{ $property->marketingPurpose->name ?? 'For Sale' }}</span>
                     @if($property->discount_available)
                         <span class="badge bg-success mb-2 ms-2">Discount Available</span>
                     @endif
                     <h1 class="fw-bold text-blue">{{ $property->headline }}</h1>
-                    <p class="h4 text-muted"><i class="bi bi-geo-alt-fill me-2 text-pink"></i>{{ $property->location }}</p>
+                    <p class="h4 text-muted">
+                        <i class="bi bi-geo-alt-fill me-2 text-pink"></i>
+                        @if($property->door_number) {{ $property->door_number }}, @endif
+                        {{ $property->location }}
+                        @if($property->city) , {{ $property->city }} @endif
+                        @if($property->postcode) , {{ $property->postcode }} @endif
+                    </p>
                 </div>
 
                 <!-- Gallery -->
@@ -91,7 +96,7 @@
                     </div>
                 @endif
 
-                <!-- Investment Details -->
+                <!-- Investment & Financial Details -->
                 <div class="bg-white p-4 rounded-4 shadow-sm mb-4">
                     <h4 class="fw-bold text-blue mb-3">Investment Details</h4>
                     <div class="row g-3">
@@ -102,23 +107,55 @@
                                     <span
                                         class="fw-bold">{{ ucfirst(str_replace('_', ' ', $property->investment_type)) }}</span>
                                 </li>
-                                <li class="list-group-item d-flex justify-content-between">
-                                    <span class="text-muted">Current Value</span>
-                                    <span class="fw-bold">£{{ number_format($property->current_value, 2) }}</span>
-                                </li>
-                                @if($property->investment_type == 'rental')
+                                @if($property->current_value)
                                     <li class="list-group-item d-flex justify-content-between">
-                                        <span class="text-muted">Est. Monthly Rent</span>
-                                        <span class="fw-bold">£{{ number_format($property->monthly_rent, 2) }}</span>
+                                        <span class="text-muted">Current Value</span>
+                                        <span class="fw-bold">£{{ number_format($property->current_value, 2) }}</span>
                                     </li>
+                                @endif
+                                @if($property->purchase_date)
+                                    <li class="list-group-item d-flex justify-content-between">
+                                        <span class="text-muted">Purchase Date</span>
+                                        <span
+                                            class="fw-bold">{{ \Carbon\Carbon::parse($property->purchase_date)->format('d M Y') }}</span>
+                                    </li>
+                                @endif
+                                @if($property->investment_type == 'rental')
+                                    @if($property->monthly_rent)
+                                        <li class="list-group-item d-flex justify-content-between">
+                                            <span class="text-muted">Est. Monthly Rent</span>
+                                            <span class="fw-bold">£{{ number_format($property->monthly_rent, 2) }}</span>
+                                        </li>
+                                    @endif
+                                    @if($property->yearly_rent)
+                                        <li class="list-group-item d-flex justify-content-between">
+                                            <span class="text-muted">Est. Yearly Rent</span>
+                                            <span class="fw-bold">£{{ number_format($property->yearly_rent, 2) }}</span>
+                                        </li>
+                                    @endif
                                     <li class="list-group-item d-flex justify-content-between">
                                         <span class="text-muted">Tenanted</span>
                                         <span class="fw-bold">{{ $property->is_currently_rented ? 'Yes' : 'No' }}</span>
                                     </li>
                                 @elseif($property->investment_type == 'buy_to_sell')
+                                    @if($property->sale_price)
+                                        <li class="list-group-item d-flex justify-content-between">
+                                            <span class="text-muted">Target Sale Price</span>
+                                            <span class="fw-bold">£{{ number_format($property->sale_price, 2) }}</span>
+                                        </li>
+                                    @endif
+                                    @if($property->sale_date)
+                                        <li class="list-group-item d-flex justify-content-between">
+                                            <span class="text-muted">Target Sale Date</span>
+                                            <span
+                                                class="fw-bold">{{ \Carbon\Carbon::parse($property->sale_date)->format('d M Y') }}</span>
+                                        </li>
+                                    @endif
+                                @endif
+                                @if($property->assignable_contract)
                                     <li class="list-group-item d-flex justify-content-between">
-                                        <span class="text-muted">Target Sale Price</span>
-                                        <span class="fw-bold">£{{ number_format($property->sale_price, 2) }}</span>
+                                        <span class="text-muted">Assignable Contract</span>
+                                        <span class="fw-bold">{{ ucfirst($property->assignable_contract) }}</span>
                                     </li>
                                 @endif
                             </ul>
@@ -130,31 +167,178 @@
                                     <span class="fw-bold">{{ ucfirst($property->tenure_type) }}</span>
                                 </li>
                                 @if($property->tenure_type == 'leasehold')
+                                    @if($property->share_of_freehold)
+                                        <li class="list-group-item d-flex justify-content-between">
+                                            <span class="text-muted">Share of Freehold</span>
+                                            <span class="fw-bold">{{ ucfirst($property->share_of_freehold) }}</span>
+                                        </li>
+                                    @endif
+                                    @if($property->lease_years_remaining)
+                                        <li class="list-group-item d-flex justify-content-between">
+                                            <span class="text-muted">Lease Remaining</span>
+                                            <span class="fw-bold">{{ $property->lease_years_remaining }} Years</span>
+                                        </li>
+                                    @endif
+                                    @if($property->service_charge)
+                                        <li class="list-group-item d-flex justify-content-between">
+                                            <span class="text-muted">Service Charge</span>
+                                            <span class="fw-bold">£{{ number_format($property->service_charge, 2) }}</span>
+                                        </li>
+                                    @endif
+                                    @if($property->ground_rent)
+                                        <li class="list-group-item d-flex justify-content-between">
+                                            <span class="text-muted">Ground Rent</span>
+                                            <span class="fw-bold">£{{ number_format($property->ground_rent, 2) }}</span>
+                                        </li>
+                                    @endif
+                                @endif
+                                @if($property->is_cash_buy)
                                     <li class="list-group-item d-flex justify-content-between">
-                                        <span class="text-muted">Lease Remaining</span>
-                                        <span class="fw-bold">{{ $property->lease_years_remaining }} Years</span>
+                                        <span class="text-muted">Cash Buy Required</span>
+                                        <span class="fw-bold text-success">Yes</span>
                                     </li>
+                                @endif
+                                @if($property->exchange_deadline)
                                     <li class="list-group-item d-flex justify-content-between">
-                                        <span class="text-muted">Service Charge</span>
-                                        <span class="fw-bold">£{{ number_format($property->service_charge, 2) }}</span>
+                                        <span class="text-muted">Exchange Deadline</span>
+                                        <span
+                                            class="fw-bold text-danger">{{ \Carbon\Carbon::parse($property->exchange_deadline)->format('d M Y') }}</span>
                                     </li>
+                                @endif
+                                @if($property->completion_deadline)
                                     <li class="list-group-item d-flex justify-content-between">
-                                        <span class="text-muted">Ground Rent</span>
-                                        <span class="fw-bold">£{{ number_format($property->ground_rent, 2) }}</span>
+                                        <span class="text-muted">Completion Deadline</span>
+                                        <span
+                                            class="fw-bold text-danger">{{ \Carbon\Carbon::parse($property->completion_deadline)->format('d M Y') }}</span>
                                     </li>
                                 @endif
                             </ul>
                         </div>
                     </div>
+
+                    <!-- Market Value Analysis -->
+                    @if($property->market_value_avg)
+                        <div class="bg-white p-4 rounded-4 shadow-sm mb-4">
+                            <h4 class="fw-bold text-blue mb-3">Market Value Analysis</h4>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <div class="p-3 bg-light rounded-3 text-center">
+                                        <small class="text-muted d-block">Market Value (Min)</small>
+                                        <span
+                                            class="h5 fw-bold text-dark">£{{ number_format($property->market_value_min, 2) }}</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="p-3 bg-light rounded-3 text-center border border-primary">
+                                        <small class="text-muted d-block">Average Market Value</small>
+                                        <span
+                                            class="h5 fw-bold text-blue">£{{ number_format($property->market_value_avg, 2) }}</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="p-3 bg-light rounded-3 text-center">
+                                        <small class="text-muted d-block">Market Value (Max)</small>
+                                        <span
+                                            class="h5 fw-bold text-dark">£{{ number_format($property->market_value_max, 2) }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            @php
+                                $saving = (float) $property->market_value_avg - (float) $property->price;
+                                $savingPercentage = $property->market_value_avg > 0 ? ($saving / (float) $property->market_value_avg) * 100 : 0;
+                            @endphp
+                            @if($saving > 0)
+                                <div class="mt-3 p-3 bg-success bg-opacity-10 rounded-3 border border-success border-opacity-25">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <span class="fw-bold text-success"><i class="bi bi-graph-down-arrow me-2"></i>Instant
+                                                Equity / Saving</span>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="h5 fw-bold text-success mb-0">£{{ number_format($saving, 2) }}
+                                                ({{ round($savingPercentage, 1) }}%)</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+                    @endif
+
+                    <!-- Mortgage / Financing Details -->
+                    @if($property->financing_type == 'mortgage' || $property->loan_amount)
+                        <div class="mt-4 pt-4 border-top">
+                            <h5 class="fw-bold text-blue mb-3">Financing & Mortgage Information</h5>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <ul class="list-group list-group-flush">
+                                        <li class="list-group-item d-flex justify-content-between">
+                                            <span class="text-muted">Financing Type</span>
+                                            <span class="fw-bold">{{ ucfirst($property->financing_type) }}</span>
+                                        </li>
+                                        @if($property->lender_name)
+                                            <li class="list-group-item d-flex justify-content-between">
+                                                <span class="text-muted">Lender</span>
+                                                <span class="fw-bold">{{ $property->lender_name }}</span>
+                                            </li>
+                                        @endif
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <ul class="list-group list-group-flush">
+                                        @if($property->loan_amount)
+                                            <li class="list-group-item d-flex justify-content-between">
+                                                <span class="text-muted">Loan Amount</span>
+                                                <span class="fw-bold">£{{ number_format($property->loan_amount, 2) }}</span>
+                                            </li>
+                                        @endif
+                                        @if($property->interest_rate)
+                                            <li class="list-group-item d-flex justify-content-between">
+                                                <span class="text-muted">Interest Rate</span>
+                                                <span class="fw-bold">{{ $property->interest_rate }}%</span>
+                                            </li>
+                                        @endif
+                                        @if($property->monthly_payment)
+                                            <li class="list-group-item d-flex justify-content-between">
+                                                <span class="text-muted">Monthly Payment</span>
+                                                <span class="fw-bold">£{{ number_format($property->monthly_payment, 2) }}</span>
+                                            </li>
+                                        @endif
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
                 </div>
+
+                <!-- Associated Costs -->
+                @if($property->costs->count() > 0)
+                    <div class="bg-white p-4 rounded-4 shadow-sm mb-4">
+                        <h4 class="fw-bold text-blue mb-3">Associated Costs</h4>
+                        <ul class="list-group list-group-flush">
+                            @foreach($property->costs as $cost)
+                                <li class="list-group-item d-flex justify-content-between px-0">
+                                    <span class="text-muted">{{ $cost->name }}</span>
+                                    <span class="fw-bold text-dark">£{{ number_format($cost->amount, 2) }}</span>
+                                </li>
+                            @endforeach
+                            <li
+                                class="list-group-item d-flex justify-content-between px-0 bg-light border-top border-primary border-2 mt-2 p-2 rounded">
+                                <span class="fw-bold text-primary">Total Additional Costs</span>
+                                <span
+                                    class="fw-bold text-primary">£{{ number_format($property->costs->sum('amount'), 2) }}</span>
+                            </li>
+                        </ul>
+                    </div>
+                @endif
 
                 <!-- Compliance -->
                 <div class="bg-white p-4 rounded-4 shadow-sm mb-4">
                     <h4 class="fw-bold text-blue mb-3">Compliance</h4>
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <div class="p-3 bg-light rounded">
-                                <h6 class="fw-bold"><i class="fas fa-fire text-danger me-2"></i>Gas Safety</h6>
+                            <div class="p-3 bg-light rounded-3 border-start border-danger border-4">
+                                <h6 class="fw-bold d-flex align-items-center"><i class="bi bi-fire text-danger me-2"></i>Gas
+                                    Safety</h6>
                                 <p class="mb-1 small text-muted">Issue:
                                     {{ $property->gas_safety_issue_date ? $property->gas_safety_issue_date->format('d M Y') : 'N/A' }}
                                 </p>
@@ -164,8 +348,9 @@
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="p-3 bg-light rounded">
-                                <h6 class="fw-bold"><i class="fas fa-bolt text-warning me-2"></i>Electrical Safety (EICR)
+                            <div class="p-3 bg-light rounded-3 border-start border-warning border-4">
+                                <h6 class="fw-bold d-flex align-items-center"><i
+                                        class="bi bi-lightning-charge-fill text-warning me-2"></i>Electrical Safety (EICR)
                                 </h6>
                                 <p class="mb-1 small text-muted">Issue:
                                     {{ $property->electrical_issue_date ? $property->electrical_issue_date->format('d M Y') : 'N/A' }}
@@ -181,9 +366,11 @@
 
             <!-- Sidebar -->
             <div class="col-lg-4">
-                <div class="card border-0 shadow-sm rounded-4 sticky-top" style="top: 100px;">
+                <div class="card border-0 shadow-sm rounded-4 sticky-top overflow-hidden" style="top: 100px;">
                     <div class="card-body p-4">
-                        <h3 class="fw-bold text-pink mb-4">£{{ number_format($property->price, 2) }}</h3>
+                        <h3 class="fw-bold text-pink mb-4">
+                            £{{ number_format($property->portal_sale_price ?? $property->price, 2) }}</h3>
+                        <p class="text-muted small mt-n3 mb-4">Inclusive of platform fee</p>
 
                         <ul class="list-group list-group-flush mb-4">
                             <li class="list-group-item d-flex justify-content-between align-items-center px-0">
@@ -221,8 +408,20 @@
                             <input type="hidden" name="comments"
                                 value="Inquiry for Property: {{ $property->headline }} (ID: {{ $property->id }}) at {{ $property->location }}">
 
-                            <button type="submit" class="btn btn-custom-pink w-100 py-3 mb-3 fw-bold">Enquire Now</button>
+                            <button type="submit" class="btn btn-custom-pink w-100 py-3 mb-4 fw-bold">Enquire Now</button>
                         </form>
+
+                        <div class="bg-light p-3 rounded-3 mb-4">
+                            <h6 class="fw-bold text-blue mb-3">Investor Benefits</h6>
+                            <ul class="list-unstyled small mb-0">
+                                <li class="mb-2"><i class="bi bi-check2 text-pink me-2"></i> Access Off market Deals</li>
+                                <li class="mb-2"><i class="bi bi-check2 text-pink me-2"></i> Up to 35% Equity / BMV</li>
+                                <li class="mb-2"><i class="bi bi-check2 text-pink me-2"></i> Distress Sales opportunities
+                                </li>
+                                <li class="mb-2"><i class="bi bi-check2 text-pink me-2"></i> Access to UK wide deals</li>
+                                <li><i class="bi bi-check2 text-pink me-2"></i> Cash Buyer verification</li>
+                            </ul>
+                        </div>
 
                         <div class="d-grid gap-2">
                             <!-- Favorite Button -->
@@ -249,7 +448,7 @@
                             </button>
 
                             <!-- Download Brochure Button -->
-                            @if(auth()->check() && auth()->user()->role !== 'user')
+                            @if(auth()->check())
                                 <a href="{{ route('available-properties.brochure', $property->id) }}"
                                     class="btn btn-custom-blue w-100 py-3 mt-2 fw-bold">
                                     <i class="bi bi-file-earmark-pdf-fill me-2"></i>Download Brochure

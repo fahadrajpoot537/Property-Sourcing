@@ -21,6 +21,15 @@ class PropertyOfferController extends Controller
     }
 
     /**
+     * Display a listing of all offers across all properties.
+     */
+    public function all()
+    {
+        $offers = PropertyOffer::with(['user', 'property'])->latest()->get();
+        return view('admin.property_offers.all', compact('offers'));
+    }
+
+    /**
      * Update the status of an offer.
      */
     public function update(Request $request, PropertyOffer $offer)

@@ -40,18 +40,23 @@ class InvestorController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
+            'address' => 'nullable|string|max:255',
             'email' => 'nullable|email|max:255|unique:users,email',
             'phone' => 'nullable|string|max:20',
             'budget' => 'nullable|string|max:255',
-            'investment_interest' => 'nullable|string|max:255',
+            'is_cash_buy' => 'nullable|boolean',
             'location' => 'nullable|string|max:255',
             'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',
-            'property_interests' => 'nullable|array',
+            'deals_of_interest' => 'nullable|array',
+            'property_types' => 'nullable|array',
+            'min_bedrooms' => 'nullable|integer',
+            'max_bedrooms' => 'nullable|integer',
+            'min_bathrooms' => 'nullable|integer',
+            'max_bathrooms' => 'nullable|integer',
+            'areas_of_interest' => 'nullable|array',
             'notes' => 'nullable|string',
         ]);
-
-        $interests = $request->property_interests ? implode(', ', $request->property_interests) : null;
 
         // Auto-generate User account if email provided
         $userId = null;
@@ -61,40 +66,52 @@ class InvestorController extends Controller
                 'name' => $request->name,
                 'email' => $request->email,
                 'phone_number' => $request->phone,
+                'address' => $request->address ?? $request->location,
                 'password' => \Illuminate\Support\Facades\Hash::make($password),
-                'role' => 'user', // Investor role
+                'role' => 'user', 
             ]);
             $userId = $user->id;
 
             // Send Welcome Email
-            \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\InvestorWelcomeMail($user, $password));
+            try {
+                \Illuminate\Support\Facades\Mail::mailer('no_reply')->to($user->email)->send(new \App\Mail\InvestorWelcomeMail($user, $password));
+            } catch (\Exception $e) {
+                \Log::error("Failed to send welcome email: " . $e->getMessage());
+            }
         }
 
         $investor = Investor::create([
             'agent_id' => Auth::id(),
             'user_id' => $userId,
             'name' => $request->name,
+            'address' => $request->address ?? $request->location,
             'email' => $request->email,
             'phone' => $request->phone,
             'budget' => $request->budget,
-            'investment_interest' => $request->investment_interest,
+            'is_cash_buy' => $request->has('is_cash_buy'),
             'location' => $request->location,
             'latitude' => $request->latitude,
             'longitude' => $request->longitude,
-            'property_interests' => $interests,
+            'deals_of_interest' => $request->deals_of_interest,
+            'property_types' => $request->property_types,
+            'min_bedrooms' => $request->min_bedrooms,
+            'max_bedrooms' => $request->max_bedrooms,
+            'min_bathrooms' => $request->min_bathrooms,
+            'max_bathrooms' => $request->max_bathrooms,
+            'areas_of_interest' => $request->areas_of_interest,
             'notes' => $request->notes,
         ]);
 
         // Auto-match check
         $matchingService->findMatchesForInvestor($investor);
 
-        return redirect()->route('admin.investors.index')->with('success', 'Investor added successfully! A welcome email has been sent ' . ($userId ? 'with login credentials.' : ' (Note: No email provided, user account not created).'));
+        return redirect()->route('admin.investors.index')->with('success', 'Investor added successfully!');
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(string $id, \App\Services\PropertyMatchingService $matchingService)
     {
         $investor = Investor::findOrFail($id);
 
@@ -103,7 +120,9 @@ class InvestorController extends Controller
             abort(403);
         }
 
-        return view('admin.investors.show', compact('investor'));
+        $matchedProperties = $matchingService->getMatchesForInvestor($investor);
+
+        return view('admin.investors.show', compact('investor', 'matchedProperties'));
     }
 
     /**
@@ -130,36 +149,47 @@ class InvestorController extends Controller
     {
         $investor = Investor::findOrFail($id);
 
-        // Authorization
         if (Auth::user()->role !== 'admin' && $investor->agent_id !== Auth::id()) {
             abort(403);
         }
 
         $request->validate([
             'name' => 'required|string|max:255',
+            'address' => 'nullable|string|max:255',
             'email' => 'nullable|email|max:255|unique:users,email,' . ($investor->user_id ?? 'NULL') . ',id',
             'phone' => 'nullable|string|max:20',
             'budget' => 'nullable|string|max:255',
-            'investment_interest' => 'nullable|string|max:255',
+            'is_cash_buy' => 'nullable|boolean',
             'location' => 'nullable|string|max:255',
             'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',
-            'property_interests' => 'nullable|array',
+            'deals_of_interest' => 'nullable|array',
+            'property_types' => 'nullable|array',
+            'min_bedrooms' => 'nullable|integer',
+            'max_bedrooms' => 'nullable|integer',
+            'min_bathrooms' => 'nullable|integer',
+            'max_bathrooms' => 'nullable|integer',
+            'areas_of_interest' => 'nullable|array',
             'notes' => 'nullable|string',
         ]);
 
-        $interests = $request->property_interests ? implode(', ', $request->property_interests) : null;
-
         $investor->update([
             'name' => $request->name,
+            'address' => $request->address,
             'email' => $request->email,
             'phone' => $request->phone,
             'budget' => $request->budget,
-            'investment_interest' => $request->investment_interest,
+            'is_cash_buy' => $request->has('is_cash_buy'),
             'location' => $request->location,
             'latitude' => $request->latitude,
             'longitude' => $request->longitude,
-            'property_interests' => $interests,
+            'deals_of_interest' => $request->deals_of_interest,
+            'property_types' => $request->property_types,
+            'min_bedrooms' => $request->min_bedrooms,
+            'max_bedrooms' => $request->max_bedrooms,
+            'min_bathrooms' => $request->min_bathrooms,
+            'max_bathrooms' => $request->max_bathrooms,
+            'areas_of_interest' => $request->areas_of_interest,
             'notes' => $request->notes,
         ]);
 
@@ -232,5 +262,23 @@ class InvestorController extends Controller
         }
 
         return redirect()->route('admin.investors.index')->with('success', "$count Investors imported successfully!");
+    }
+
+    public function downloadTemplate()
+    {
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="investor_import_template.csv"',
+        ];
+
+        $columns = ['name', 'email', 'phone', 'address', 'budget', 'is_cash_buy', 'notes'];
+
+        $callback = function () use ($columns) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, $columns);
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 }

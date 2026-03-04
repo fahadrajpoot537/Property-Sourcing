@@ -7,73 +7,67 @@
     <div class="page-header">
         <div class="d-flex justify-content-between align-items-center">
             <div>
-                <h2>Recent Properties</h2>
+                <h2 class="fw-bold">Welcome, {{ auth()->user()->name }} to your {{ ucfirst(auth()->user()->role) }}
+                    Dashboard!</h2>
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
-                        <li class="breadcrumb-item active">Recent Properties</li>
+                        <li class="breadcrumb-item active">Overview</li>
                     </ol>
                 </nav>
             </div>
             @if(auth()->user()->role === 'admin')
-                <a href="{{ route('admin.create') }}" class="btn btn-admin-pink">
-                    <i class="bi bi-plus-lg me-2"></i>Add New Property
-                </a>
+                <div class="d-flex gap-2">
+                    <a href="{{ route('admin.available-properties.create') }}" class="btn btn-admin-pink">
+                        <i class="bi bi-plus-lg me-2"></i>Add Available Property
+                    </a>
+                    <a href="{{ route('admin.create') }}" class="btn btn-admin-primary">
+                        <i class="bi bi-check-circle me-2"></i>Add Sold Property
+                    </a>
+                </div>
             @endif
+
         </div>
     </div>
 
     <!-- Stats Cards -->
     <div class="row g-4 mb-4">
         <div class="col-xl-3 col-md-6">
-            <div class="stats-card blue">
+            <div class="stats-card blue shadow-sm border-0">
                 <div class="icon">
                     <i class="bi bi-building"></i>
                 </div>
-                <h3>{{ $properties->total() }}</h3>
-                <p>Total Properties</p>
+                <h3>{{ $stats['total_properties'] }}</h3>
+                <p>Sold Properties</p>
             </div>
         </div>
         <div class="col-xl-3 col-md-6">
-            <div class="stats-card pink">
+            <div class="stats-card pink shadow-sm border-0">
                 <div class="icon">
                     <i class="bi bi-graph-up-arrow"></i>
                 </div>
-                <h3>{{ number_format($properties->avg('bmv_percentage'), 1) }}%</h3>
+                <h3>{{ number_format($stats['avg_bmv'], 1) }}%</h3>
                 <p>Average BMV</p>
             </div>
         </div>
         <div class="col-xl-3 col-md-6">
-            <div class="stats-card success">
+            <div class="stats-card success shadow-sm border-0">
                 <div class="icon">
                     <i class="bi bi-check-circle"></i>
                 </div>
-                <h3>{{ $properties->where('type', '!=', null)->count() }}</h3>
-                <p>With Investment Type</p>
+                <h3>{{ \App\Models\News::count() }}</h3>
+                <p>Blog Posts</p>
             </div>
         </div>
         <div class="col-xl-3 col-md-6">
-            <div class="stats-card warning">
+            <div class="stats-card warning shadow-sm border-0">
                 <div class="icon">
-                    <i class="bi bi-eye"></i>
+                    <i class="bi bi-people"></i>
                 </div>
-                <h3>Active</h3>
-                <p>Status</p>
+                <h3>{{ \App\Models\User::count() }}</h3>
+                <p>Total Investors</p>
             </div>
         </div>
-
-        @if(auth()->user()->role !== 'admin')
-            <div class="col-xl-3 col-md-6">
-                <div class="stats-card warning position-relative">
-                    <div class="icon">
-                        <i class="bi bi-trophy-fill"></i>
-                    </div>
-                    <h3>{{ auth()->user()->investment_credits ?? 0 }}</h3>
-                    <p>Investment Credits</p>
-                    <a href="{{ route('user.credits.index') }}" class="stretched-link"></a>
-                </div>
-            </div>
-        @endif
     </div>
 
     <!-- Success Message -->
@@ -84,96 +78,75 @@
         </div>
     @endif
 
-    <!-- Properties Table -->
-    <div class="content-card">
-        <div class="card-header">
-            <h5><i class="bi bi-list-ul me-2"></i>Recent Properties</h5>
-
+    <!-- Quick Actions & Recent Row -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-8">
+            <div class="content-card shadow-sm border-0">
+                <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold text-blue"><i class="bi bi-clock-history me-2"></i>Recently Added Sold
+                        Properties</h5>
+                    <a href="{{ route('admin.portfolio') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table admin-table mb-0 align-middle">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-4">Listing</th>
+                                    <th>BMV</th>
+                                    <th class="text-end pe-4">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($stats['recent_properties'] as $property)
+                                    <tr>
+                                        <td class="ps-4">
+                                            <div class="d-flex align-items-center">
+                                                <img src="{{ $property->image_url ? (Str::startsWith($property->image_url, 'http') ? $property->image_url : asset('storage/' . $property->image_url)) : 'https://via.placeholder.com/60' }}"
+                                                    alt="Property" class="rounded me-3"
+                                                    style="width: 40px; height: 40px; object-fit: cover;">
+                                                <div class="fw-bold text-dark small">{{ $property->location }}</div>
+                                            </div>
+                                        </td>
+                                        <td><span class="text-success fw-bold small">{{ $property->bmv_percentage }}%</span>
+                                        </td>
+                                        <td class="text-end pe-4">
+                                            <a href="{{ route('admin.edit', $property->id) }}" class="text-primary"><i
+                                                    class="bi bi-pencil"></i></a>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="3" class="text-center py-4 text-muted small">No recent properties</td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="card-body">
-            <table class="table admin-table">
-                <thead>
-                    <tr>
-                        <th style="width: 80px;">Image</th>
-                        <th>Location</th>
-                        <th>Type</th>
-                        <th>Description</th>
-                        <th style="width: 100px;">BMV %</th>
-                        <th style="width: 100px;">Yield</th>
-                        <th style="width: 150px;" class="text-end">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($properties as $property)
-                        <tr>
-                            <td>
-                                <img src="{{ $property->image_url ? (Str::startsWith($property->image_url, 'http') ? $property->image_url : asset('storage/' . $property->image_url)) : 'https://via.placeholder.com/60' }}"
-                                    alt="Property" class="rounded" style="width: 60px; height: 60px; object-fit: cover;">
-                            </td>
-                            <td>
-                                <div class="fw-bold text-dark">{{ $property->location }}</div>
-                                <small
-                                    class="text-muted">{{ $property->description ? Str::limit($property->description, 30) : 'N/A' }}</small>
-                            </td>
-                            <td>
-                                @if($property->type)
-                                    <span class="badge badge-admin bg-primary">{{ $property->type }}</span>
-                                @else
-                                    <span class="text-muted small">Not set</span>
-                                @endif
-                            </td>
-                            <td>
-                                <div class="text-secondary small" style="max-width: 250px;">
-                                    {{ Str::limit($property->description, 60) }}
-                                </div>
-                            </td>
-                            <td>
-                                <span class="badge badge-admin bg-success">{{ $property->bmv_percentage }}%</span>
-                            </td>
-                            <td>
-                                <span class="text-dark fw-600">{{ $property->yield ?? 'N/A' }}</span>
-                            </td>
-                            <td class="text-end">
-                                @if(auth()->user()->role === 'admin')
-                                    <div class="d-flex gap-2 justify-content-end">
-                                        <a href="{{ route('admin.edit', $property->id) }}" class="btn btn-sm btn-admin-edit"
-                                            title="Edit">
-                                            <i class="bi bi-pencil"></i>
-                                        </a>
-                                        <form action="{{ route('admin.destroy', $property->id) }}" method="POST" class="d-inline"
-                                            onsubmit="return confirm('Are you sure you want to delete this property?');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-admin-delete" title="Delete">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </form>
-                                    </div>
-                                @else
-                                    <span class="text-muted small">View Only</span>
-                                @endif
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="7" class="text-center py-5">
-                                <i class="bi bi-inbox fs-1 text-muted d-block mb-3"></i>
-                                <p class="text-muted mb-3">No properties found.</p>
-                                <a href="{{ route('admin.create') }}" class="btn btn-admin-pink">
-                                    <i class="bi bi-plus-lg me-2"></i>Add Your First Property
-                                </a>
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
+        <div class="col-lg-4">
+            <div class="content-card shadow-sm border-0">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h5 class="mb-0 fw-bold text-blue"><i class="bi bi-lightning-fill text-warning me-2"></i>Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="d-grid gap-3">
+                        <a href="{{ route('admin.available-properties.create') }}"
+                            class="btn btn-light border text-start p-3 hover-lift">
+                            <i class="bi bi-plus-circle-dotted text-pink me-2"></i> Add Available Property
+                        </a>
+                        <a href="{{ route('admin.create') }}" class="btn btn-light border text-start p-3 hover-lift">
+                            <i class="bi bi-check-circle text-blue me-2"></i> Add Sold Property
+                        </a>
+                        <a href="{{ route('admin.news.create') }}" class="btn btn-light border text-start p-3 hover-lift">
+                            <i class="bi bi-newspaper text-success me-2"></i> Create Blog Post
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-
-    <!-- Pagination -->
-    @if($properties->hasPages())
-        <div class="mt-4">
-            {{ $properties->links('pagination::bootstrap-5') }}
-        </div>
-    @endif
 @endsection

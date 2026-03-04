@@ -38,7 +38,7 @@
                                     <div class="col-md-6">
                                         <label for="phone_number" class="form-label">Phone Number</label>
                                         <input type="text" class="form-control" id="phone_number" name="phone_number"
-                                            value="{{ old('phone_number', $user->phone_number) }}">
+                                            value="{{ old('phone_number', $user->phone_number ?? $user->phone) }}">
                                     </div>
                                 </div>
                             </div>
@@ -49,7 +49,7 @@
                                     <div class="col-12">
                                         <label for="address_line1" class="form-label">Address Line 1</label>
                                         <input type="text" class="form-control" id="address_line1" name="address_line1"
-                                            value="{{ old('address_line1', $user->address_line1) }}">
+                                            value="{{ old('address_line1', $user->address_line1 ?? $user->address) }}">
                                     </div>
                                     <div class="col-12">
                                         <label for="address_line2" class="form-label">Address Line 2 (Optional)</label>
@@ -88,6 +88,46 @@
                                         <input type="text" class="form-control" id="company_registration"
                                             name="company_registration"
                                             value="{{ old('company_registration', $user->company_registration) }}">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <h5 class="fw-bold text-muted mb-3">Investment Details</h5>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="budget" class="form-label">Budget (£)</label>
+                                        <input type="number" class="form-control" id="budget" name="budget"
+                                            value="{{ old('budget', $user->budget) }}">
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label">Property Types of Interest</label>
+                                        <div class="row g-2">
+                                            @php
+                                                $interests = [
+                                                    'BMV' => 'BMV',
+                                                    'HMO' => 'HMO',
+                                                    'Development Land' => 'Development Land',
+                                                    'Buy to Let' => 'Buy to Let',
+                                                    'Commercial' => 'Commercial',
+                                                    'Distressed Properties' => 'Distressed Properties',
+                                                    'Rent to Rent' => 'Rent to Rent',
+                                                    'SA' => 'SA (Serviced Accommodation)',
+                                                    'Auction Properties' => 'Auction Properties',
+                                                ];
+                                                $userInterests = explode(', ', $user->property_interests ?? '');
+                                            @endphp
+                                            @foreach($interests as $key => $label)
+                                                <div class="col-md-4 col-6">
+                                                    <div class="form-check small text-muted">
+                                                        <input class="form-check-input" type="checkbox" name="property_interests[]" 
+                                                            value="{{ $key }}" id="interest_{{ $key }}" 
+                                                            {{ in_array($key, $userInterests) ? 'checked' : '' }}>
+                                                        <label class="form-check-label" for="interest_{{ $key }}">{{ $label }}</label>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
                                     </div>
                                 </div>
                             </div>

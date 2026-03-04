@@ -31,6 +31,7 @@ class InvestorWelcomeMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
+            from: new \Illuminate\Mail\Mailables\Address('no-reply@propertysourcinggroup.co.uk', 'Property Sourcing Group'),
             subject: 'Welcome to Property Sourcing Group - Your Account Details',
         );
     }

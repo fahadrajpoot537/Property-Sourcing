@@ -58,7 +58,6 @@ class PropertyOfferController extends Controller
         try {
             Mail::send('emails.property_offer', $data, function ($message) use ($adminEmail, $property, $user) {
                 $message->to($adminEmail)
-                    ->from('inquiries@propertysourcinggroup.co.uk', 'Property Sourcing Group')
                     ->subject('New Property Offer: ' . $property->headline . ' from ' . $user->name);
             });
         } catch (\Exception $e) {

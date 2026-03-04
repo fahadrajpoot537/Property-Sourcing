@@ -36,6 +36,13 @@ class UserController extends Controller
         return view('admin.users.index', compact('users'));
     }
 
+    public function show(User $user)
+    {
+        // Load relationships like properties or offers if applicable
+        $user->load(['properties', 'offers.property']);
+        return view('admin.users.show', compact('user'));
+    }
+
     public function updateStatus(Request $request, User $user)
     {
         $request->validate([

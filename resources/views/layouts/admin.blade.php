@@ -120,6 +120,35 @@
             color: var(--primary-pink);
         }
 
+        /* Dropdown/Submenu styles */
+        .sidebar-nav .dropdown-icon {
+            font-size: 0.8rem;
+            transition: transform 0.3s ease;
+            width: auto;
+            margin-right: 0;
+            margin-left: auto;
+        }
+
+        .sidebar-nav a[aria-expanded="true"] .dropdown-icon {
+            transform: rotate(180deg);
+        }
+
+        .nav-submenu {
+            background-color: rgba(0, 0, 0, 0.1);
+            padding: 5px 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .nav-submenu a {
+            padding-left: 50px !important;
+            font-size: 0.9rem;
+        }
+
+        .nav-submenu a:hover {
+            padding-left: 55px !important;
+        }
+
         /* Topbar */
         .admin-topbar {
             position: fixed;
@@ -508,6 +537,57 @@
             color: var(--primary-pink) !important;
         }
 
+        .bg-primary {
+            background-color: var(--primary-blue) !important;
+        }
+
+        .text-blue {
+            color: var(--primary-blue) !important;
+        }
+
+        .bg-gradient-blue {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, #2a5298 100%);
+        }
+
+        .bg-soft-blue {
+            background-color: rgba(30, 64, 114, 0.1);
+        }
+
+        .bg-success-soft {
+            background-color: rgba(40, 167, 69, 0.1);
+        }
+
+        .text-cyan {
+            color: #4CD7F6 !important;
+        }
+
+        .stats-card.blue {
+            border-left: 4px solid #4e73df;
+        }
+
+        .stats-card.pink {
+            border-left: 4px solid #f95ca8;
+        }
+
+        .stats-card.success {
+            border-left: 4px solid #1cc88a;
+        }
+
+        .stats-card.warning {
+            border-left: 4px solid #f6c23e;
+        }
+
+        .btn-white {
+            background-color: white;
+            border: 1px solid #e3e6f0;
+            color: #4e73df;
+        }
+
+        .btn-white:hover {
+            background-color: #f8f9fc;
+            border-color: #d1d3e2;
+        }
+
         .bg-blue {
             background-color: var(--primary-blue) !important;
             color: white !important;
@@ -566,142 +646,226 @@
                         <i class="bi bi-people-fill"></i>
                         <span>Investor Accounts</span>
                     </a>
-                @endif
-
-                <div class="nav-section-title">Management</div>
-
-                @if(auth()->user()->role === 'admin')
-                    <a href="{{ route('admin.services.index') }}"
-                        class="{{ request()->routeIs('admin.services.*') ? 'active' : '' }}">
-                        <i class="bi bi-grid-1x2"></i> <span>Services</span>
-                    </a>
-                    <a href="{{ route('admin.locations.index') }}"
-                        class="{{ request()->routeIs('admin.locations.*') ? 'active' : '' }}">
-                        <i class="bi bi-geo-alt"></i> <span>Locations</span>
-                    </a>
-                    <a href="{{ route('admin.team.index') }}" class="{{ request()->routeIs('admin.team.*') ? 'active' : '' }}">
-                        <i class="bi bi-people"></i> <span>Team Members</span>
-                    </a>
-                    <a href="{{ route('admin.news.index') }}" class="{{ request()->routeIs('admin.news.*') ? 'active' : '' }}">
-                        <i class="bi bi-newspaper"></i> <span>News & Blog</span>
-                    </a>
-                    <a href="{{ route('admin.faq.index') }}" class="{{ request()->routeIs('admin.faq.*') ? 'active' : '' }}">
-                        <i class="bi bi-question-circle"></i> <span>FAQs</span>
-                    </a>
-                    <a href="{{ route('admin.trustpilot-reviews.index') }}"
-                        class="{{ request()->routeIs('admin.trustpilot-reviews.*') ? 'active' : '' }}">
-                        <i class="bi bi-star"></i> <span>Trustpilot Reviews</span>
-                    </a>
-                    <a href="{{ route('admin.work-steps.index') }}"
-                        class="{{ request()->routeIs('admin.work-steps.*') ? 'active' : '' }}">
-                        <i class="bi bi-list-check"></i> <span>How It Works</span>
-                    </a>
-                @endif
-
-                @if(auth()->user()->role === 'admin')
-                    <a href="{{ route('admin.inquiries.index') }}"
-                        class="{{ request()->routeIs('admin.inquiries.*') && !request()->has('type') ? 'active' : '' }}">
-                        <i class="bi bi-envelope-fill"></i>
-                        <span>General Inquiries</span>
-                    </a>
-
-                    <a href="{{ route('admin.inquiries.index', ['type' => 'property']) }}"
-                        class="{{ request()->routeIs('admin.inquiries.*') && request()->get('type') == 'property' ? 'active' : '' }}">
+@php $hasPortfolio = Route::has('admin.portfolio'); @endphp
+@if ($hasPortfolio)
+                    <a href="{{ route('admin.portfolio') }}"
+                        class="{{ request()->routeIs('admin.portfolio') ? 'active' : '' }}">
                         <i class="bi bi-building-check"></i>
-                        <span>Property Inquiries</span>
+                        <span>Sold Portfolio</span>
                     </a>
+@endif
                 @endif
 
-                @if(auth()->user()->role === 'admin')
-                    <a href="{{ route('admin.messages.index') }}"
-                        class="{{ request()->routeIs('admin.messages.*') ? 'active' : '' }}">
-                        <i class="bi bi-chat-dots-fill"></i>
-                        <span>Messages</span>
-                    </a>
-                @endif
-
-                <a href="{{ route('admin.investors.index') }}"
-                    class="{{ request()->routeIs('admin.investors.*') ? 'active' : '' }}">
-                    <i class="bi bi-person-lines-fill"></i>
-                    <span>Investor List</span>
+                @php
+                    $isManagementActive = request()->routeIs('admin.services.*', 'admin.locations.*', 'admin.team.*', 'admin.news.*', 'admin.faq.*', 'admin.trustpilot-reviews.*', 'admin.work-steps.*', 'admin.property-offers.*', 'admin.inquiries.*', 'admin.messages.*', 'admin.investors.*') || (request()->routeIs('available-properties.index') && !request()->has('status'));
+                @endphp
+                <a class="{{ $isManagementActive ? '' : 'collapsed' }}" data-bs-toggle="collapse" href="#collapseManagement"
+                    role="button" aria-expanded="{{ $isManagementActive ? 'true' : 'false' }}"
+                    style="display: flex; align-items: center; padding: 14px 20px; color: rgba(255, 255, 255, 0.8); text-decoration: none; transition: all 0.3s ease; position: relative; font-weight: 500;">
+                    <i class="bi bi-gear"
+                        style="font-size: 1.2rem; margin-right: 12px; width: 24px; text-align: center;"></i>
+                    <span>Management</span>
+                    <i class="bi bi-chevron-down ms-auto dropdown-icon"></i>
                 </a>
+                <div class="collapse {{ $isManagementActive ? 'show' : '' }}" id="collapseManagement">
+                    <div class="nav-submenu">
+                        @if(auth()->user()->role === 'admin')
+                            <a href="{{ route('admin.services.index') }}"
+                                class="{{ request()->routeIs('admin.services.*') ? 'active' : '' }}">
+                                <i class="bi bi-grid-1x2"></i> <span>Services</span>
+                            </a>
+                            <a href="{{ route('admin.locations.index') }}"
+                                class="{{ request()->routeIs('admin.locations.*') ? 'active' : '' }}">
+                                <i class="bi bi-geo-alt"></i> <span>Locations</span>
+                            </a>
+                            <a href="{{ route('admin.team.index') }}"
+                                class="{{ request()->routeIs('admin.team.*') ? 'active' : '' }}">
+                                <i class="bi bi-people"></i> <span>Team Members</span>
+                            </a>
+                            <a href="{{ route('admin.news.index') }}"
+                                class="{{ request()->routeIs('admin.news.*') ? 'active' : '' }}">
+                                <i class="bi bi-newspaper"></i> <span>News & Blog</span>
+                            </a>
+                            <a href="{{ route('admin.faq.index') }}"
+                                class="{{ request()->routeIs('admin.faq.*') ? 'active' : '' }}">
+                                <i class="bi bi-question-circle"></i> <span>FAQs</span>
+                            </a>
+                            <a href="{{ route('admin.trustpilot-reviews.index') }}"
+                                class="{{ request()->routeIs('admin.trustpilot-reviews.*') ? 'active' : '' }}">
+                                <i class="bi bi-star"></i> <span>Trustpilot Reviews</span>
+                            </a>
+                            <a href="{{ route('admin.work-steps.index') }}"
+                                class="{{ request()->routeIs('admin.work-steps.*') ? 'active' : '' }}">
+                                <i class="bi bi-list-check"></i> <span>How It Works</span>
+                            </a>
+                            <a href="{{ route('admin.property-offers.all') }}"
+                                class="{{ request()->routeIs('admin.property-offers.all') ? 'active' : '' }}">
+                                <i class="bi bi-currency-pound"></i> <span>Offers List</span>
+                            </a>
+                        @endif
 
-                <div class="nav-section-title">Properties</div>
-                @if(auth()->user()->role === 'admin')
-                    <a href="{{ route('admin.dashboard') }}"
-                        class="{{ request()->routeIs('admin.dashboard') && !request()->routeIs('admin.available-properties.*') ? 'active' : '' }}">
-                        <i class="bi bi-list-stars"></i>
-                        <span>Recent Properties</span>
-                    </a>
-                @endif
-                <a href="{{ route('admin.available-properties.index') }}"
-                    class="{{ request()->routeIs('admin.available-properties.index') ? 'active' : '' }}">
-                    <i class="bi bi-building"></i>
-                    <span>Available Properties</span>
+                        @if(auth()->user()->role === 'admin')
+                            <a href="{{ route('admin.inquiries.index') }}"
+                                class="{{ request()->routeIs('admin.inquiries.*') && !request()->has('type') ? 'active' : '' }}">
+                                <i class="bi bi-envelope-fill"></i>
+                                <span>General Inquiries</span>
+                            </a>
+
+                            <a href="{{ route('admin.inquiries.index', ['type' => 'property']) }}"
+                                class="{{ request()->routeIs('admin.inquiries.*') && request()->get('type') == 'property' ? 'active' : '' }}">
+                                <i class="bi bi-building-check"></i>
+                                <span>Property Inquiries</span>
+                            </a>
+                        @endif
+
+                        @if(auth()->user()->role === 'admin')
+                            <a href="{{ route('admin.messages.index') }}"
+                                class="{{ request()->routeIs('admin.messages.*') ? 'active' : '' }}">
+                                <i class="bi bi-chat-dots-fill"></i>
+                                <span>Messages</span>
+                            </a>
+                        @endif
+
+                        <a href="{{ route('admin.investors.index') }}"
+                            class="{{ request()->routeIs('admin.investors.*') ? 'active' : '' }}">
+                            <i class="bi bi-person-lines-fill"></i>
+                            <span>Investor List</span>
+                        </a>
+
+                        <a href="{{ route('available-properties.index') }}"
+                            class="{{ request()->routeIs('available-properties.index') && !request()->has('status') ? 'active' : '' }}">
+                            <i class="bi bi-search"></i>
+                            <span>Search Properties</span>
+                        </a>
+                    </div>
+                </div>
+
+                @php
+                    $isPropertyMgmtActive = request()->routeIs('admin.available-properties.*');
+                @endphp
+                <a class="{{ $isPropertyMgmtActive ? '' : 'collapsed' }}" data-bs-toggle="collapse"
+                    href="#collapsePropertyMgmt" role="button"
+                    aria-expanded="{{ $isPropertyMgmtActive ? 'true' : 'false' }}"
+                    style="display: flex; align-items: center; padding: 14px 20px; color: rgba(255, 255, 255, 0.8); text-decoration: none; transition: all 0.3s ease; position: relative; font-weight: 500;">
+                    <i class="bi bi-building"
+                        style="font-size: 1.2rem; margin-right: 12px; width: 24px; text-align: center;"></i>
+                    <span>Property Management</span>
+                    <i class="bi bi-chevron-down ms-auto dropdown-icon"></i>
                 </a>
-                @if(auth()->user()->role === 'admin')
-                    <a href="{{ route('admin.agent-properties') }}"
-                        class="{{ request()->routeIs('admin.agent-properties') ? 'active' : '' }}">
-                        <i class="bi bi-person-badge"></i>
-                        <span>Agent Properties</span>
-                    </a>
-                @endif
-                <a href="{{ route('admin.available-properties.create') }}"
-                    class="{{ request()->routeIs('admin.available-properties.create') ? 'active' : '' }}">
-                    <i class="bi bi-plus-circle"></i>
-                    <span>Add Property</span>
-                </a>
+                <div class="collapse {{ $isPropertyMgmtActive ? 'show' : '' }}" id="collapsePropertyMgmt">
+                    <div class="nav-submenu">
+                        <a href="{{ route('admin.available-properties.index') }}"
+                            class="{{ request()->routeIs('admin.available-properties.index') && !request()->has('status') ? 'active' : '' }}">
+                            <i class="bi bi-building"></i>
+                            <span>My Properties</span>
+                        </a>
+                        <a href="{{ route('admin.available-properties.create') }}"
+                            class="{{ request()->routeIs('admin.available-properties.create') ? 'active' : '' }}">
+                            <i class="bi bi-plus-circle"></i>
+                            <span>Add a Property</span>
+                        </a>
+                        <a href="{{ route('admin.available-properties.index', ['status' => 'draft']) }}"
+                            class="{{ request()->get('status') == 'draft' ? 'active' : '' }}">
+                            <i class="bi bi-file-earmark-text"></i>
+                            <span>My Drafts</span>
+                        </a>
+                        <a href="{{ route('admin.available-properties.index', ['status' => 'published']) }}"
+                            class="{{ request()->get('status') == 'published' ? 'active' : '' }}">
+                            <i class="bi bi-broadcast"></i>
+                            <span>Published Listings</span>
+                        </a>
+                        <a href="{{ route('admin.available-properties.index', ['status' => 'sold']) }}"
+                            class="{{ request()->get('status') == 'sold' ? 'active' : '' }}">
+                            <i class="bi bi-check-all"></i>
+                            <span>Sold Listings</span>
+                        </a>
+                        <a href="{{ route('admin.available-properties.index', ['status' => 'under_offer']) }}"
+                            class="{{ request()->get('status') == 'under_offer' ? 'active' : '' }}">
+                            <i class="bi bi-hourglass-split"></i>
+                            <span>Under Offer</span>
+                        </a>
+                    </div>
+                </div>
 
                 @if(auth()->user()->role === 'admin')
-                    <div class="nav-section-title">Form Settings</div>
-                    <a href="{{ route('admin.property-types.index') }}"
-                        class="{{ request()->routeIs('admin.property-types.*') ? 'active' : '' }}">
-                        <i class="bi bi-house-door"></i> <span>Property Types</span>
+                    @php
+                        $isFormSettingsActive = request()->routeIs('admin.property-types.*', 'admin.marketing-purposes.*', 'admin.unit-types.*', 'admin.features.*');
+                    @endphp
+                    <a class="{{ $isFormSettingsActive ? '' : 'collapsed' }}" data-bs-toggle="collapse"
+                        href="#collapseFormSettings" role="button"
+                        aria-expanded="{{ $isFormSettingsActive ? 'true' : 'false' }}"
+                        style="display: flex; align-items: center; padding: 14px 20px; color: rgba(255, 255, 255, 0.8); text-decoration: none; transition: all 0.3s ease; position: relative; font-weight: 500;">
+                        <i class="bi bi-ui-checks"
+                            style="font-size: 1.2rem; margin-right: 12px; width: 24px; text-align: center;"></i>
+                        <span>Form Settings</span>
+                        <i class="bi bi-chevron-down ms-auto dropdown-icon"></i>
                     </a>
-                    <a href="{{ route('admin.marketing-purposes.index') }}"
-                        class="{{ request()->routeIs('admin.marketing-purposes.*') ? 'active' : '' }}">
-                        <i class="bi bi-tag"></i> <span>Marketing Purposes</span>
-                    </a>
-                    <a href="{{ route('admin.unit-types.index') }}"
-                        class="{{ request()->routeIs('admin.unit-types.*') ? 'active' : '' }}">
-                        <i class="bi bi-grid"></i> <span>Unit Types</span>
-                    </a>
-                    <a href="{{ route('admin.features.index') }}"
-                        class="{{ request()->routeIs('admin.features.*') ? 'active' : '' }}">
-                        <i class="bi bi-check-square"></i> <span>Features</span>
-                    </a>
+                    <div class="collapse {{ $isFormSettingsActive ? 'show' : '' }}" id="collapseFormSettings">
+                        <div class="nav-submenu">
+                            <a href="{{ route('admin.property-types.index') }}"
+                                class="{{ request()->routeIs('admin.property-types.*') ? 'active' : '' }}">
+                                <i class="bi bi-house-door"></i> <span>Property Types</span>
+                            </a>
+                            <a href="{{ route('admin.marketing-purposes.index') }}"
+                                class="{{ request()->routeIs('admin.marketing-purposes.*') ? 'active' : '' }}">
+                                <i class="bi bi-tag"></i> <span>Marketing Purposes</span>
+                            </a>
+                            <a href="{{ route('admin.unit-types.index') }}"
+                                class="{{ request()->routeIs('admin.unit-types.*') ? 'active' : '' }}">
+                                <i class="bi bi-grid"></i> <span>Unit Types</span>
+                            </a>
+                            <a href="{{ route('admin.features.index') }}"
+                                class="{{ request()->routeIs('admin.features.*') ? 'active' : '' }}">
+                                <i class="bi bi-check-square"></i> <span>Features</span>
+                            </a>
+                        </div>
+                    </div>
                 @endif
             @endif
 
             <!-- Investor / Regular User Menu -->
             @if(!in_array(auth()->user()->role, ['admin', 'agent']))
-                <div class="nav-section-title">My Activities</div>
-                <a href="{{ route('user.profile.edit') }}"
-                    class="{{ request()->routeIs('user.profile.*') ? 'active' : '' }}">
-                    <i class="bi bi-person-gear"></i>
-                    <span>My Profile</span>
+                @php
+                    $isActivitiesActive = request()->routeIs('user.profile.*', 'user.offers.*', 'user.favorites.*', 'admin.messages.*', 'available-properties.index');
+                @endphp
+                <a class="{{ $isActivitiesActive ? '' : 'collapsed' }}" data-bs-toggle="collapse" href="#collapseActivities"
+                    role="button" aria-expanded="{{ $isActivitiesActive ? 'true' : 'false' }}"
+                    style="display: flex; align-items: center; padding: 14px 20px; color: rgba(255, 255, 255, 0.8); text-decoration: none; transition: all 0.3s ease; position: relative; font-weight: 500;">
+                    <i class="bi bi-person-lines-fill"
+                        style="font-size: 1.2rem; margin-right: 12px; width: 24px; text-align: center;"></i>
+                    <span>My Activities</span>
+                    <i class="bi bi-chevron-down ms-auto dropdown-icon"></i>
                 </a>
-                <a href="{{ route('user.offers.index') }}"
-                    class="{{ request()->routeIs('user.offers.*') ? 'active' : '' }}">
-                    <i class="bi bi-currency-pound"></i>
-                    <span>My Offers</span>
-                </a>
-                <a href="{{ route('user.favorites.index') }}"
-                    class="{{ request()->routeIs('user.favorites.*') ? 'active' : '' }}">
-                    <i class="bi bi-heart"></i>
-                    <span>Favorites</span>
-                </a>
-                <!-- Messages Link for User -->
-                <a href="{{ route('admin.messages.index') }}"
-                    class="{{ request()->routeIs('admin.messages.*') ? 'active' : '' }}">
-                    <i class="bi bi-chat-dots"></i>
-                    <span>Messages</span>
-                </a>
-                <a href="{{ route('available-properties.index') }}"
-                    class="{{ request()->routeIs('available-properties.index') ? 'active' : '' }}">
-                    <i class="bi bi-search"></i>
-                    <span>Find Properties</span>
-                </a>
+                <div class="collapse {{ $isActivitiesActive ? 'show' : '' }}" id="collapseActivities">
+                    <div class="nav-submenu">
+                        <a href="{{ route('user.profile.edit') }}"
+                            class="{{ request()->routeIs('user.profile.*') ? 'active' : '' }}">
+                            <i class="bi bi-person-gear"></i>
+                            <span>My Profile</span>
+                        </a>
+                        <a href="{{ route('user.offers.index') }}"
+                            class="{{ request()->routeIs('user.offers.*') ? 'active' : '' }}">
+                            <i class="bi bi-currency-pound"></i>
+                            <span>My Offers</span>
+                        </a>
+                        <a href="{{ route('user.favorites.index') }}"
+                            class="{{ request()->routeIs('user.favorites.*') ? 'active' : '' }}">
+                            <i class="bi bi-heart"></i>
+                            <span>Favorites</span>
+                        </a>
+                        <!-- Messages Link for User -->
+                        <a href="{{ route('admin.messages.index') }}"
+                            class="{{ request()->routeIs('admin.messages.*') ? 'active' : '' }}">
+                            <i class="bi bi-chat-dots"></i>
+                            <span>Messages</span>
+                        </a>
+                        <a href="{{ route('available-properties.index') }}"
+                            class="{{ request()->routeIs('available-properties.index') ? 'active' : '' }}">
+                            <i class="bi bi-search"></i>
+                            <span>Find Properties</span>
+                        </a>
+                    </div>
+                </div>
             @endif
 
             <div class="nav-section-title">System</div>

@@ -6,7 +6,7 @@
     <div class="container py-5">
         <div class="row mb-5 align-items-center">
             <div class="col-md-8">
-                <h1 class="fw-bold text-blue">Welcome, {{ $user->name }}!</h1>
+                <h1 class="fw-bold text-blue">Welcome, {{ $user->name }} to your Investor Dashboard!</h1>
                 <p class="text-muted lead">Manage your property investment journey from your personal dashboard.</p>
             </div>
             <div class="col-md-4 text-md-end">

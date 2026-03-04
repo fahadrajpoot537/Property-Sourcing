@@ -57,7 +57,6 @@ class InquiryController extends Controller
         try {
             Mail::send('emails.inquiry', $emailData, function ($message) use ($recipient, $inquiry) {
                 $message->to($recipient)
-                    ->from('inquiries@propertysourcinggroup.co.uk', 'Property Sourcing Group')
                     ->subject('New ' . ucfirst($inquiry->type) . ' Inquiry from ' . $inquiry->name);
             });
         } catch (\Exception $e) {

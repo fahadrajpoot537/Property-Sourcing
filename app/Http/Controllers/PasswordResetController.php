@@ -20,19 +20,25 @@ class PasswordResetController extends Controller
     {
         $request->validate(['email' => 'required|email']);
 
-        // Switch to no-reply mailer
+        // Temporarily use the no-reply mailer configuration
         $originalMailer = config('mail.default');
+        $originalFrom = config('mail.from.address');
+        
         config(['mail.default' => 'no_reply']);
-        config(['mail.from.address' => 'no-reply@propertysourcinggroup.co.uk']);
-        config(['mail.from.name' => 'Property Sourcing Group']);
+        
+        // Ensure log driver is used if specified in .env to prevent local SMTP hang
+        if (env('MAIL_MAILER') === 'log') {
+            config(['mail.mailers.no_reply.transport' => 'log']);
+        }
 
-        $status = Password::sendResetLink(
-            $request->only('email')
-        );
+        // Set from address to the no-reply account
+        config(['mail.from.address' => env('MAIL_NOREPLY_USERNAME', $originalFrom)]);
 
-        // Restore original mailer
+        $status = Password::sendResetLink($request->only('email'));
+        
+        // Restore original mailer and from address
         config(['mail.default' => $originalMailer]);
-        config(['mail.from.address' => 'inquiries@propertysourcinggroup.co.uk']);
+        config(['mail.from.address' => $originalFrom]);
 
         return $status === Password::RESET_LINK_SENT
             ? back()->with(['success' => __($status)])

@@ -15,11 +15,20 @@ class AvailableProperty extends Model
     protected $fillable = [
         'user_id',
         'headline',
+        'property_title',
         'location',
+        'door_number',
+        'city',
+        'postcode',
         'latitude',
         'longitude',
         'marketing_purpose_id',
         'price',
+        'market_value_min',
+        'market_value_max',
+        'market_value_avg',
+        'psg_fees',
+        'portal_sale_price',
         'discount_available',
         'property_type_id',
         'unit_type_id',
@@ -32,6 +41,10 @@ class AvailableProperty extends Model
         'video_url',
         'is_active',
         'status',
+        'is_cash_buy',
+        'exchange_deadline',
+        'completion_deadline',
+        'assignable_contract',
         // New Investment Details
         'current_value',
         'purchase_date',
@@ -44,8 +57,10 @@ class AvailableProperty extends Model
         'sale_price',
         'sale_date',
         'monthly_rent',
+        'yearly_rent',
         'is_currently_rented',
         'tenure_type',
+        'share_of_freehold',
         'service_charge',
         'ground_rent',
         'lease_years_remaining',
@@ -64,13 +79,20 @@ class AvailableProperty extends Model
         'discount_available' => 'boolean',
         'gallery_images' => 'array',
         'is_active' => 'boolean',
+        'is_cash_buy' => 'boolean',
         'price' => 'decimal:2',
+        'market_value_min' => 'decimal:2',
+        'market_value_max' => 'decimal:2',
+        'market_value_avg' => 'decimal:2',
+        'psg_fees' => 'decimal:2',
+        'portal_sale_price' => 'decimal:2',
         'current_value' => 'decimal:2',
         'loan_amount' => 'decimal:2',
         'interest_rate' => 'decimal:2',
         'monthly_payment' => 'decimal:2',
         'sale_price' => 'decimal:2',
         'monthly_rent' => 'decimal:2',
+        'yearly_rent' => 'decimal:2',
         'service_charge' => 'decimal:2',
         'ground_rent' => 'decimal:2',
         'latitude' => 'decimal:8',
@@ -117,6 +139,11 @@ class AvailableProperty extends Model
     public function offers()
     {
         return $this->hasMany(PropertyOffer::class);
+    }
+
+    public function tenantsMessages() // Changed name if necessary but keeping it as is from model
+    {
+         // Original code didn't have this, but I'll stick to what was there.
     }
 
     public function messages()

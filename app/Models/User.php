@@ -38,6 +38,10 @@ class User extends Authenticatable
         'about_me',
         'investment_credits',
         'investment_type',
+        'budget',
+        'property_interests',
+        'latitude',
+        'longitude',
         'status',
         'is_active',
     ];
@@ -45,6 +49,11 @@ class User extends Authenticatable
     public function completedProperties()
     {
         return $this->hasMany(UserCompletedProperty::class);
+    }
+
+    public function properties()
+    {
+        return $this->hasMany(AvailableProperty::class, 'user_id');
     }
 
     public function favorites()

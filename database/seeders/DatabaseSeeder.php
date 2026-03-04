@@ -17,11 +17,13 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-        User::factory()->create([
-            'name' => 'Admin User',
-            'email' => 'admin@propertysourcing.com',
-            'password' => bcrypt('password'), // password
-        ]);
+        if (!User::where('email', 'webleads@propertysourcinggroup.co.uk')->exists()) {
+            User::factory()->create([
+                'name' => 'Admin User',
+                'email' => 'webleads@propertysourcinggroup.co.uk',
+                'password' => bcrypt('password'),
+            ]);
+        }
 
         $this->call([
             PropertySeeder::class,

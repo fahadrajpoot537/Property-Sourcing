@@ -13,7 +13,8 @@ class AvailablePropertyController extends Controller
 {
     public function index(Request $request)
     {
-        $query = AvailableProperty::where('is_active', true)->where('status', 'approved');
+        $query = AvailableProperty::where('is_active', true)
+            ->whereIn('status', ['approved', 'under offer']);
 
         // Price Filter
         if ($request->filled('min_price')) {
@@ -66,16 +67,35 @@ class AvailablePropertyController extends Controller
         return view('admin.available_properties.agents_list', compact('properties'));
     }
 
-    public function adminIndex()
+    public function adminIndex(Request $request)
     {
-        $query = AvailableProperty::with(['propertyType', 'marketingPurpose', 'owner'])
-            ->where('user_id', auth()->id())
-            ->latest();
+        $query = AvailableProperty::with(['propertyType', 'marketingPurpose', 'owner']);
 
-        $properties = $query->paginate(10);
+        // Basic Filter for Agents (Only see own)
+        if (Auth::user()->role !== 'admin') {
+            $query->where('user_id', Auth::id());
+        }
+
+        // Status Filter
+        if ($request->filled('status')) {
+            $status = $request->status;
+            if ($status === 'draft') {
+                $query->where('status', 'pending');
+            } elseif ($status === 'published') {
+                $query->where('status', 'approved');
+            } elseif ($status === 'sold') {
+                $query->where('status', 'sold out');
+            } elseif ($status === 'under_offer') {
+                $query->where('status', 'under offer');
+            } else {
+                $query->where('status', $status);
+            }
+        }
+
+        $properties = $query->latest()->paginate(10);
 
         $otherAgents = \App\Models\User::where('role', 'agent')
-            ->where('id', '!=', auth()->id())
+            ->where('id', '!=', Auth::id())
             ->get();
 
         return view('admin.available_properties.index', compact('properties', 'otherAgents'));
@@ -95,8 +115,15 @@ class AvailablePropertyController extends Controller
     {
         $request->validate([
             'headline' => 'required|string|max:255',
+            'property_title' => 'nullable|string|max:255',
             'location' => 'required|string|max:255',
+            'door_number' => 'nullable|string|max:255',
+            'city' => 'nullable|string|max:255',
+            'postcode' => 'nullable|string|max:255',
             'price' => 'required|numeric',
+            'market_value_min' => 'nullable|numeric',
+            'market_value_max' => 'nullable|numeric',
+            'market_value_avg' => 'nullable|numeric',
             'property_type_id' => 'required|exists:property_types,id',
             'marketing_purpose_id' => 'required|exists:marketing_purposes,id',
             'unit_type_id' => 'nullable|exists:unit_types,id',
@@ -107,40 +134,31 @@ class AvailablePropertyController extends Controller
             'status' => 'nullable|string|in:pending,approved,disapproved,sold out,under offer',
             'features' => 'nullable|array',
             'features.*' => 'exists:features,id',
-            // New Fields Validation
-            'current_value' => 'nullable|numeric',
-            'purchase_date' => 'nullable|date',
-            'financing_type' => 'nullable|in:cash,mortgage',
-            'loan_amount' => 'nullable|numeric',
-            'interest_rate' => 'nullable|numeric',
-            'lender_name' => 'nullable|string',
-            'monthly_payment' => 'nullable|numeric', // Mortgage monthly payment override
-            'investment_type' => 'nullable|in:buy_to_sell,rental,bmv_deal,refurb_deal,hmo,btl,brr,r2r,serviced_accommodation',
-            'sale_price' => 'nullable|numeric',
-            'sale_date' => 'nullable|date',
-            'monthly_rent' => 'nullable|numeric', // Rental income
-            'is_currently_rented' => 'nullable|boolean',
-            'tenure_type' => 'nullable|in:freehold,leasehold',
-            'service_charge' => 'nullable|numeric',
-            'ground_rent' => 'nullable|numeric',
+            'investment_type' => 'nullable|string',
+            'financing_type' => 'nullable|string',
+            'is_cash_buy' => 'nullable|boolean',
+            'exchange_deadline' => 'nullable|string',
+            'completion_deadline' => 'nullable|string',
+            'assignable_contract' => 'nullable|string',
+            'tenure_type' => 'nullable|string',
+            'share_of_freehold' => 'nullable|string',
             'lease_years_remaining' => 'nullable|integer',
-            'gas_safety_issue_date' => 'nullable|date',
-            'gas_safety_expiry_date' => 'nullable|date',
-            'electrical_issue_date' => 'nullable|date',
-            'electrical_expiry_date' => 'nullable|date',
-            // Associated Costs (Array)
-            'costs' => 'nullable|array',
-            'costs.*.name' => 'required_with:costs|string',
-            'costs.*.amount' => 'required_with:costs|numeric',
-            // Tenants (Array)
-            'tenants' => 'nullable|array',
-            'tenants.*.name' => 'required_with:tenants|string',
-            'tenants.*.phone' => 'nullable|string',
-            'tenants.*.email' => 'nullable|email',
-            'tenants.*.is_primary' => 'nullable|boolean',
+            'monthly_rent' => 'nullable|numeric',
+            'yearly_rent' => 'nullable|numeric',
+            'is_currently_rented' => 'nullable|boolean',
         ]);
 
         $data = $request->except(['thumbnail', 'gallery_images', 'features', 'video', 'costs', 'tenants']);
+
+        // Platform Fee Calculation (Flat 2%)
+        if (isset($data['price'])) {
+            $vendorPrice = (float) $data['price'];
+            $psgFee = $vendorPrice * 0.02;
+            $data['psg_fees'] = $psgFee;
+            $data['portal_sale_price'] = $vendorPrice + $psgFee;
+            // Note: Vendor Sale Price is stored in 'price' field.
+        }
+
         $data['discount_available'] = $request->has('discount_available');
         $data['is_currently_rented'] = $request->has('is_currently_rented');
 
@@ -175,7 +193,8 @@ class AvailablePropertyController extends Controller
 
         $property = AvailableProperty::create($data);
 
-        // Find and notify matches
+        // Notify matching service
+        $matchingService = app(\App\Services\PropertyMatchingService::class);
         $matchingService->findMatchesForProperty($property);
 
         // Sync features
@@ -209,6 +228,25 @@ class AvailablePropertyController extends Controller
             }
         }
 
+        // Notify Admin (webleads) for any new property added
+        try {
+            $adminEmail = 'webleads@propertysourcinggroup.co.uk';
+            $data = [
+                'agent_name' => auth()->user()->name,
+                'property_title' => $property->headline,
+                'property_location' => $property->location,
+                'property_price' => $property->portal_sale_price ?? $property->price,
+                'property_url' => route('available-properties.show', $property->id),
+            ];
+
+            \Illuminate\Support\Facades\Mail::send('emails.admin_new_property', $data, function ($message) use ($adminEmail, $property) {
+                $message->to($adminEmail)
+                    ->subject('New Property Listed: ' . $property->headline);
+            });
+        } catch (\Exception $e) {
+            \Log::error('Failed to send admin notification for new property: ' . $e->getMessage());
+        }
+
         return redirect()->route('admin.available-properties.index')->with('success', 'Property added successfully');
     }
 
@@ -224,66 +262,63 @@ class AvailablePropertyController extends Controller
         return view('admin.available_properties.edit', compact('property', 'propertyTypes', 'marketingPurposes', 'unitTypes', 'features', 'selectedFeatures'));
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, $id, \App\Services\PropertyMatchingService $matchingService)
     {
         $property = AvailableProperty::findOrFail($id);
 
         $request->validate([
             'headline' => 'required|string|max:255',
+            'property_title' => 'nullable|string|max:255',
             'location' => 'required|string|max:255',
+            'door_number' => 'nullable|string|max:255',
+            'city' => 'nullable|string|max:255',
+            'postcode' => 'nullable|string|max:255',
             'price' => 'required|numeric',
+            'market_value_min' => 'nullable|numeric',
+            'market_value_max' => 'nullable|numeric',
+            'market_value_avg' => 'nullable|numeric',
             'property_type_id' => 'required|exists:property_types,id',
             'marketing_purpose_id' => 'required|exists:marketing_purposes,id',
             'unit_type_id' => 'nullable|exists:unit_types,id',
             'full_description' => 'required|string',
             'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'gallery_images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'video' => 'nullable|mimetypes:video/mp4,video/quicktime,video/x-msvideo,video/x-matroska|max:20480', // 20MB max
+            'video' => 'nullable|mimetypes:video/mp4,video/quicktime,video/x-msvideo,video/x-matroska|max:20480',
             'status' => 'nullable|string|in:pending,approved,disapproved,sold out,under offer',
             'features' => 'nullable|array',
             'features.*' => 'exists:features,id',
-            // New Fields Validation
-            'current_value' => 'nullable|numeric',
-            'purchase_date' => 'nullable|date',
-            'financing_type' => 'nullable|in:cash,mortgage',
-            'loan_amount' => 'nullable|numeric',
-            'interest_rate' => 'nullable|numeric',
-            'lender_name' => 'nullable|string',
-            'monthly_payment' => 'nullable|numeric',
-            'investment_type' => 'nullable|in:buy_to_sell,rental,bmv_deal,refurb_deal,hmo,btl,brr,r2r,serviced_accommodation',
-            'sale_price' => 'nullable|numeric',
-            'sale_date' => 'nullable|date',
-            'monthly_rent' => 'nullable|numeric',
-            'is_currently_rented' => 'nullable|boolean',
-            'tenure_type' => 'nullable|in:freehold,leasehold',
-            'service_charge' => 'nullable|numeric',
-            'ground_rent' => 'nullable|numeric',
+            'investment_type' => 'nullable|string',
+            'financing_type' => 'nullable|string',
+            'is_cash_buy' => 'nullable|boolean',
+            'exchange_deadline' => 'nullable|string',
+            'completion_deadline' => 'nullable|string',
+            'assignable_contract' => 'nullable|string',
+            'tenure_type' => 'nullable|string',
+            'share_of_freehold' => 'nullable|string',
             'lease_years_remaining' => 'nullable|integer',
-            'gas_safety_issue_date' => 'nullable|date',
-            'gas_safety_expiry_date' => 'nullable|date',
-            'electrical_issue_date' => 'nullable|date',
-            'electrical_expiry_date' => 'nullable|date',
-            // Associated Costs (Array)
-            'costs' => 'nullable|array',
-            'costs.*.name' => 'required_with:costs|string',
-            'costs.*.amount' => 'required_with:costs|numeric',
-            // Tenants (Array)
-            'tenants' => 'nullable|array',
-            'tenants.*.name' => 'required_with:tenants|string',
-            'tenants.*.phone' => 'nullable|string',
-            'tenants.*.email' => 'nullable|email',
-            'tenants.*.is_primary' => 'nullable|boolean',
+            'monthly_rent' => 'nullable|numeric',
+            'yearly_rent' => 'nullable|numeric',
+            'is_currently_rented' => 'nullable|boolean',
         ]);
 
         $data = $request->except(['thumbnail', 'gallery_images', 'features', 'video', 'costs', 'tenants']);
+
+        // Platform Fee Calculation (Flat 2%)
+        if (isset($data['price'])) {
+            $vendorPrice = (float) $data['price'];
+            $psgFee = $vendorPrice * 0.02;
+            $data['psg_fees'] = $psgFee;
+            $data['portal_sale_price'] = $vendorPrice + $psgFee;
+        }
+
         $data['discount_available'] = $request->has('discount_available');
         $data['is_currently_rented'] = $request->has('is_currently_rented');
+        $data['is_cash_buy'] = (bool) $request->is_cash_buy;
 
         if ($request->has('status')) {
             if (auth()->user()->role === 'admin') {
                 $data['status'] = $request->status;
             } else {
-                // Agents can only set pending or sold out
                 if (in_array($request->status, ['pending', 'sold out'])) {
                     $data['status'] = $request->status;
                 }
@@ -291,7 +326,6 @@ class AvailablePropertyController extends Controller
         }
 
         if ($request->hasFile('thumbnail')) {
-            // Delete old thumbnail if exists
             if ($property->thumbnail) {
                 Storage::disk('public')->delete($property->thumbnail);
             }
@@ -307,7 +341,6 @@ class AvailablePropertyController extends Controller
         }
 
         if ($request->hasFile('video')) {
-            // Delete old video if exists
             if ($property->video_url) {
                 Storage::disk('public')->delete($property->video_url);
             }
@@ -323,7 +356,7 @@ class AvailablePropertyController extends Controller
             $property->features()->detach();
         }
 
-        // Sync Costs (Delete all and re-create)
+        // Sync Costs
         $property->costs()->delete();
         if ($request->has('costs')) {
             foreach ($request->costs as $cost) {
@@ -336,7 +369,7 @@ class AvailablePropertyController extends Controller
             }
         }
 
-        // Sync Tenants (Delete all and re-create)
+        // Sync Tenants
         $property->tenants()->delete();
         if ($request->has('tenants')) {
             foreach ($request->tenants as $tenant) {
@@ -351,29 +384,22 @@ class AvailablePropertyController extends Controller
             }
         }
 
+        $matchingService->findMatchesForProperty($property);
+
         return redirect()->route('admin.available-properties.index')->with('success', 'Property updated successfully');
     }
 
     public function destroy($id)
     {
         $property = AvailableProperty::findOrFail($id);
-
-        // Delete images
-        if ($property->thumbnail) {
+        if ($property->thumbnail)
             Storage::disk('public')->delete($property->thumbnail);
-        }
-
         if ($property->gallery_images) {
-            foreach ($property->gallery_images as $image) {
+            foreach ($property->gallery_images as $image)
                 Storage::disk('public')->delete($image);
-            }
         }
-
-        if ($property->video_url) {
+        if ($property->video_url)
             Storage::disk('public')->delete($property->video_url);
-        }
-
-        // Features will be detached automatically if cascade is set or we do it manually
         $property->features()->detach();
         $property->delete();
 
@@ -383,21 +409,13 @@ class AvailablePropertyController extends Controller
     public function downloadBrochure($id)
     {
         ini_set('memory_limit', '256M');
-        ini_set('max_execution_time', '120');
         try {
             $property = AvailableProperty::with(['propertyType', 'marketingPurpose', 'unitType', 'features', 'costs'])->findOrFail($id);
             $user = auth()->user();
-
-            // Sanitize filename
             $filename = 'Brochure_' . preg_replace('/[^A-Za-z0-9_\-]/', '_', $property->headline) . '.pdf';
-
             $pdf = Pdf::loadView('available_properties.brochure', compact('property', 'user'));
-            $pdf->setPaper('a4', 'portrait');
-
             return $pdf->download($filename);
         } catch (\Exception $e) {
-            \Log::error('Brochure download error for ID ' . $id . ': ' . $e->getMessage());
-            \Log::error($e->getTraceAsString());
             return back()->with('error', 'Could not generate brochure: ' . $e->getMessage());
         }
     }
@@ -411,69 +429,52 @@ class AvailablePropertyController extends Controller
     public function updateStatus(Request $request, $id)
     {
         $property = AvailableProperty::findOrFail($id);
-
-        $request->validate([
-            'status' => 'required|in:pending,approved,disapproved,sold out,under offer'
-        ]);
-
+        $request->validate(['status' => 'required|in:pending,approved,disapproved,sold out,under offer']);
         if (auth()->user()->role === 'admin') {
             $property->status = $request->status;
         } else {
-            // Agents can only set pending, sold out or under offer
             if (in_array($request->status, ['pending', 'sold out', 'under offer'])) {
                 $property->status = $request->status;
             } else {
-                return back()->with('error', 'You are not authorized to set this status.');
+                return back()->with('error', 'Unauthorized.');
             }
         }
-
         $property->save();
-
-        return back()->with('success', 'Property status updated successfully');
+        return back()->with('success', 'Status updated successfully');
     }
+
     public function notifyAgents(Request $request, $id)
     {
         $property = AvailableProperty::findOrFail($id);
         $sender = auth()->user();
-
-        $query = \App\Models\User::where('role', 'agent')
-            ->where('id', '!=', $sender->id);
-
-        if ($request->has('agent_ids')) {
+        $query = \App\Models\User::where('role', 'agent')->where('id', '!=', $sender->id);
+        if ($request->has('agent_ids'))
             $query->whereIn('id', $request->agent_ids);
-        }
-
         $agents = $query->get();
-
-        if ($agents->isEmpty()) {
-            return back()->with('info', 'No agents selected or found to notify.');
-        }
-
-        try {
-            foreach ($agents as $agent) {
-                if ($agent->email) {
-                    \Illuminate\Support\Facades\Mail::to($agent->email)
-                        ->send(new \App\Mail\AgentPropertyNotificationMail($property, $sender));
-                }
+        foreach ($agents as $agent) {
+            if ($agent->email) {
+                \Illuminate\Support\Facades\Mail::to($agent->email)->send(new \App\Mail\AgentPropertyNotificationMail($property, $sender));
             }
-            return back()->with('success', 'Notification sent to ' . $agents->count() . ' agent(s) successfully.');
-        } catch (\Exception $e) {
-            \Log::error('Agent Notification Error: ' . $e->getMessage());
-            return back()->with('error', 'Failed to send notifications: ' . $e->getMessage());
         }
+        return back()->with('success', 'Notifications sent.');
     }
 
-    public function showSocialPosts($id)
+    public function sendBulkEmail(Request $request)
     {
-        $property = AvailableProperty::findOrFail($id);
-
-        // If not generated or forced refresh, trigger generation
-        if (!$property->generated_posts || request()->has('refresh')) {
-            $generator = new \App\Services\PropertyImageGeneratorService();
-            $generator->generateCarousel($property);
-            $property->refresh();
+        $request->validate(['property_ids' => 'required|array']);
+        $properties = AvailableProperty::whereIn('id', $request->property_ids)->get();
+        $sender = auth()->user();
+        $recipients = collect();
+        if ($request->send_to_all_agents)
+            $recipients = $recipients->merge(\App\Models\User::where('role', 'agent')->pluck('email'));
+        if ($request->agent_ids)
+            $recipients = $recipients->merge(\App\Models\User::whereIn('id', $request->agent_ids)->pluck('email'));
+        if ($request->email)
+            $recipients->push($request->email);
+        $recipients = $recipients->unique()->filter();
+        foreach ($recipients as $recipient) {
+            \Illuminate\Support\Facades\Mail::to($recipient)->send(new \App\Mail\BulkPropertyMail($properties, $sender, $request->message ?? ''));
         }
-
-        return view('admin.available_properties.social_posts', compact('property'));
+        return response()->json(['success' => true, 'message' => 'Emails sent.']);
     }
 }

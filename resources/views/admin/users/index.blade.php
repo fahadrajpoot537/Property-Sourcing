@@ -1,5 +1,14 @@
 @extends('layouts.admin')
 
+@push('styles')
+<style>
+    .hover-link:hover {
+        color: var(--primary-pink) !important;
+        text-decoration: underline !important;
+    }
+</style>
+@endpush
+
 @section('title', 'Registered Users')
 
 @section('content')
@@ -122,9 +131,14 @@
                                             <i class="bi bi-person fs-5"></i>
                                         </div>
                                         <div>
-                                            <div class="fw-bold text-dark">{{ $user->name }}</div>
+                                            <div class="fw-bold">
+                                                <a href="{{ route('admin.users.show', $user) }}" class="text-dark text-decoration-none hover-link">
+                                                    {{ $user->name }}
+                                                </a>
+                                            </div>
                                             <div class="small text-muted">{{ $user->email }}</div>
                                         </div>
+
                                     </div>
                                 </td>
                                 <td>
@@ -170,6 +184,11 @@
                                             Manage
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+                                            <li>
+                                                <a href="{{ route('admin.users.show', $user) }}" class="dropdown-item py-2">
+                                                    <i class="bi bi-eye text-info me-2"></i>View Details
+                                                </a>
+                                            </li>
                                             @if($user->status == 0)
                                                 <li>
                                                     <form action="{{ route('admin.users.status', $user) }}" method="POST">

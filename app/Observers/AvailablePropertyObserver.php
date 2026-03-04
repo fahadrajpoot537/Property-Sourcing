@@ -12,9 +12,6 @@ class AvailablePropertyObserver
 {
     public function created(AvailableProperty $availableProperty): void
     {
-        // 1. Dispatch Instagram Post Generation
-        \App\Jobs\GeneratePropertyPostJob::dispatch($availableProperty);
-
         // 2. Notify Matching Investors
         if ($availableProperty->status === 'approved') {
             $this->notifyMatchingInvestors($availableProperty);

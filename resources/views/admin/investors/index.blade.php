@@ -60,9 +60,8 @@
                             <th>Investor Name</th>
                             <th>Contact Info</th>
                             <th>Budget</th>
-                            <th>Investment Interest</th>
-                            <th>Location</th>
-                            <th>Interests</th>
+                            <th>Investment Preferences</th>
+                            <th>Locations</th>
                             @if(auth()->user()->role === 'admin')
                                 <th>Added By</th>
                             @endif
@@ -74,26 +73,31 @@
                             <tr>
                                 <td>
                                     <div class="fw-bold text-dark">{{ $investor->name }}</div>
-                                    <small class="text-muted">ID: #{{ $investor->id }}</small>
+                                    @if($investor->is_cash_buy)
+                                        <span class="badge bg-success-soft text-success small"><i class="bi bi-patch-check-fill me-1"></i>Cash Buyer</span>
+                                    @endif
                                 </td>
                                 <td>
                                     <div><i class="bi bi-envelope me-1"></i>{{ $investor->email ?? 'N/A' }}</div>
                                     <div><i class="bi bi-phone me-1"></i>{{ $investor->phone ?? 'N/A' }}</div>
                                 </td>
-                                <td>{{ $investor->budget ?? 'N/A' }}</td>
-                                <td>{{ $investor->investment_interest ?? 'N/A' }}</td>
+                                <td>£{{ number_format((float)$investor->budget, 0) }}</td>
                                 <td>
-                                    <div class="small fw-600"><i
-                                            class="bi bi-geo-alt-fill text-danger me-1"></i>{{ $investor->location ?? 'N/A' }}
-                                    </div>
-                                </td>
-                                <td>
-                                    @if($investor->property_interests)
-                                        @foreach(explode(', ', $investor->property_interests) as $interest)
-                                            <span class="badge bg-light text-blue border mb-1">{{ $interest }}</span>
+                                    @if($investor->deals_of_interest)
+                                        @foreach($investor->deals_of_interest as $deal)
+                                            <span class="badge bg-light text-primary border mb-1">{{ $deal }}</span>
                                         @endforeach
                                     @else
-                                        <span class="text-muted small">No interests set</span>
+                                        <span class="text-muted small">None set</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($investor->areas_of_interest)
+                                        @foreach($investor->areas_of_interest as $area)
+                                            <span class="badge bg-light text-danger border mb-1"><i class="bi bi-geo-alt me-1"></i>{{ $area }}</span>
+                                        @endforeach
+                                    @else
+                                        <div class="small fw-600 text-muted">{{ $investor->location ?? 'N/A' }}</div>
                                     @endif
                                 </td>
                                 @if(auth()->user()->role === 'admin')
@@ -161,11 +165,15 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
-                        <p class="small text-muted mb-3">Upload a CSV file with headers:
-                            <code>name, email, phone, budget, investment_interest, notes</code>
-                        </p>
+                        <div class="bg-light p-3 rounded mb-3">
+                            <h6 class="fw-bold small mb-2"><i class="bi bi-info-circle me-1"></i>Formatting Instructions</h6>
+                            <p class="small text-muted mb-2">Upload a CSV file with these headers: <code>name, email, phone, address, budget, is_cash_buy, notes</code></p>
+                            <a href="{{ route('admin.investors.template') }}" class="btn btn-sm btn-link p-0 text-decoration-none fw-bold">
+                                <i class="bi bi-download me-1"></i>Download Blank Template
+                            </a>
+                        </div>
                         <div class="mb-3">
-                            <label class="form-label">Choose CSV File</label>
+                            <label class="form-label fw-bold">Choose CSV File</label>
                             <input type="file" name="file" class="form-control" accept=".csv" required>
                         </div>
                     </div>

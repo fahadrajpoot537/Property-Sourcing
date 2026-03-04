@@ -1,6 +1,11 @@
 @extends('layouts.app')
 
+@section('meta_title', $article->meta_title ?? $article->title . ' | Property Sourcing Group')
+@section('meta_description', $article->meta_description ?? Str::limit(strip_tags($article->excerpt ?? $article->content), 160))
+@section('meta_keywords', $article->meta_keywords ?? 'property sourcing, blog, investment, ' . $article->title)
+
 @section('content')
+
     <article class="bg-white">
         <!-- Header -->
         <header class="py-5 bg-blue text-white overflow-hidden position-relative">

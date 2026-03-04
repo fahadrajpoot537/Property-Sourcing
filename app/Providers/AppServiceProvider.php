@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Auth\Notifications\ResetPassword as BaseResetPassword;
+use App\Notifications\CustomResetPassword;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -20,6 +22,11 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         \App\Models\AvailableProperty::observe(\App\Observers\AvailablePropertyObserver::class);
+
+        // Use custom password reset notification with theme colors
+        BaseResetPassword::toMailUsing(function ($notifiable, $token) {
+            return (new CustomResetPassword($token))->toMail($notifiable);
+        });
 
         try {
             if (\Illuminate\Support\Facades\Schema::hasTable('services')) {

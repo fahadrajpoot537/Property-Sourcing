@@ -35,6 +35,27 @@
             background-color: #0d6efd;
             border-color: #0d6efd;
         }
+
+        .preview-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .preview-item {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #e3e6f0;
+        }
+
+        .preview-item img, .preview-item video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
     </style>
 @endpush
 
@@ -245,6 +266,21 @@
                                             </div>
                                         </div>
 
+                                        <div class="row mb-4">
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-bold">Is it a cash buy?</label>
+                                                <select name="is_cash_buy" class="form-select">
+                                                    <option value="0" {{ old('is_cash_buy', $property->is_cash_buy) == '0' ? 'selected' : '' }}>No</option>
+                                                    <option value="1" {{ old('is_cash_buy', $property->is_cash_buy) == '1' ? 'selected' : '' }}>Yes</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-bold">Completion Deadline</label>
+                                                <input type="date" name="completion_deadline" class="form-control"
+                                                    value="{{ old('completion_deadline', $property->completion_deadline ? \Carbon\Carbon::parse($property->completion_deadline)->format('Y-m-d') : '') }}">
+                                            </div>
+                                        </div>
+
                                         <div class="mb-4">
                                             <label class="form-label fw-bold">Financing Type</label>
                                             <select name="financing_type" id="financing_type" class="form-select mb-3">
@@ -341,14 +377,21 @@
                                             <label class="form-label fw-bold">Investment Type</label>
                                             <select name="investment_type" id="investment_type" class="form-select mb-3">
                                                 <option value="">Select Strategy</option>
-                                                <option value="buy_to_sell" {{ old('investment_type', $property->investment_type) == 'buy_to_sell' ? 'selected' : '' }}>Buy to Sell</option>
-                                                <option value="rental" {{ old('investment_type', $property->investment_type) == 'rental' ? 'selected' : '' }}>Rental Property</option>
-                                                <option value="bmv_deal" {{ old('investment_type', $property->investment_type) == 'bmv_deal' ? 'selected' : '' }}>BMV Deal</option>
-                                                <option value="refurb_deal" {{ old('investment_type', $property->investment_type) == 'refurb_deal' ? 'selected' : '' }}>Refurb Deal</option>
+                                                <option value="buy_to_sell" {{ old('investment_type', $property->investment_type) == 'buy_to_sell' ? 'selected' : '' }}>Buy to
+                                                    Sell</option>
+                                                <option value="rental" {{ old('investment_type', $property->investment_type) == 'rental' ? 'selected' : '' }}>Rental
+                                                    Property</option>
+                                                <option value="bmv_deal" {{ old('investment_type', $property->investment_type) == 'bmv_deal' ? 'selected' : '' }}>BMV Deal
+                                                </option>
+                                                <option value="refurb_deal" {{ old('investment_type', $property->investment_type) == 'refurb_deal' ? 'selected' : '' }}>Refurb
+                                                    Deal</option>
                                                 <option value="hmo" {{ old('investment_type', $property->investment_type) == 'hmo' ? 'selected' : '' }}>HMO</option>
-                                                <option value="btl" {{ old('investment_type', $property->investment_type) == 'btl' ? 'selected' : '' }}>BTL (Buy to Let)</option>
-                                                <option value="brr" {{ old('investment_type', $property->investment_type) == 'brr' ? 'selected' : '' }}>BRR (Buy Refurb Refinance)</option>
-                                                <option value="r2r" {{ old('investment_type', $property->investment_type) == 'r2r' ? 'selected' : '' }}>R2R (Rent to Rent)</option>
+                                                <option value="btl" {{ old('investment_type', $property->investment_type) == 'btl' ? 'selected' : '' }}>BTL (Buy to Let)
+                                                </option>
+                                                <option value="brr" {{ old('investment_type', $property->investment_type) == 'brr' ? 'selected' : '' }}>BRR (Buy Refurb
+                                                    Refinance)</option>
+                                                <option value="r2r" {{ old('investment_type', $property->investment_type) == 'r2r' ? 'selected' : '' }}>R2R (Rent to
+                                                    Rent)</option>
                                                 <option value="serviced_accommodation" {{ old('investment_type', $property->investment_type) == 'serviced_accommodation' ? 'selected' : '' }}>Serviced Accommodation (SA)</option>
                                             </select>
 
@@ -550,7 +593,8 @@
                                             @endif
                                             <div class="upload-container text-center border p-3 rounded bg-light">
                                                 <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
-                                                <input type="file" name="thumbnail" class="form-control" accept="image/*">
+                                                <input type="file" id="thumb-input" name="thumbnail" class="form-control" accept="image/*">
+                                                <div id="thumb-preview" class="preview-container"></div>
                                             </div>
                                         </div>
 
@@ -564,8 +608,9 @@
                                                     @endforeach
                                                 </div>
                                             @endif
-                                            <input type="file" name="gallery_images[]" class="form-control" accept="image/*"
+                                            <input type="file" id="gallery-input" name="gallery_images[]" class="form-control" accept="image/*"
                                                 multiple>
+                                            <div id="gallery-preview" class="preview-container"></div>
                                             <small class="text-muted">Will replace current gallery</small>
                                         </div>
 
@@ -580,7 +625,10 @@
                                                     <p class="small text-muted mt-1">Current Video</p>
                                                 </div>
                                             @endif
-                                            <input type="file" name="video" class="form-control" accept="video/*">
+                                            <input type="file" id="video-input" name="video" class="form-control" accept="video/*">
+                                            <div id="video-preview" class="mt-3" style="display: none;">
+                                                <video controls style="max-width: 100%; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"></video>
+                                            </div>
                                             <small class="text-muted">Upload property walkthrough (MP4, Max 20MB)</small>
                                         </div>
                                     </div>
@@ -659,180 +707,229 @@
                     <!-- CKEditor 5 -->
                     <script src="https://cdn.ckeditor.com/ckeditor5/40.0.0/classic/ckeditor.js"></script>
                     <!-- Google Maps Places API -->
-                    <scriptsrc="https://maps.googleapis.com/maps/api/js?key=AIzaSyDtagAWzRL7h2Safzk7EwKK0x6v42RlsdI&libraries=places"></script>
-                            <script>
-                                // Initialize CKEditor
-                                ClassicEditor
-                                    .create(document.querySelector('#editor'), {
-                                        toolbar: ['heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', 'blockQuote', 'undo', 'redo'],
-                                    })
-                                    .catch(error => {
-                                        console.error(error);
-                                    });
+                    <scriptsrc="https:
+                        //maps.googleapis.com/maps/api/js?key=AIzaSyDtagAWzRL7h2Safzk7EwKK0x6v42RlsdI&libraries=places">
+                        </script>
+                        <script>
+                            // Initialize CKEditor
+                            ClassicEditor
+                                .create(document.querySelector('#editor'), {
+                                    toolbar: ['heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', 'blockQuote', 'undo', 'redo'],
+                                })
+                                .catch(error => {
+                                    console.error(error);
+                                });
 
-                                function initAutocomplete() {
-                                    const input = document.getElementById("location-input");
-                                    const options = {
-                                        componentRestrictions: { country: "gb" },
-                                        fields: ["address_components", "geometry", "icon", "name"],
-                                        strictBounds: false,
-                                    };
+                            function initAutocomplete() {
+                                const input = document.getElementById("location-input");
+                                const options = {
+                                    componentRestrictions: { country: "gb" },
+                                    fields: ["address_components", "geometry", "icon", "name"],
+                                    strictBounds: false,
+                                };
 
-                                    const autocomplete = new google.maps.places.Autocomplete(input, options);
+                                const autocomplete = new google.maps.places.Autocomplete(input, options);
 
-                                    autocomplete.addListener("place_changed", () => {
-                                        const place = autocomplete.getPlace();
+                                autocomplete.addListener("place_changed", () => {
+                                    const place = autocomplete.getPlace();
 
-                                        if (!place.geometry || !place.geometry.location) {
-                                            window.alert("No details available for input: '" + place.name + "'");
-                                            return;
-                                        }
-
-                                        document.getElementById("latitude").value = place.geometry.location.lat();
-                                        document.getElementById("longitude").value = place.geometry.location.lng();
-                                    });
-                                }
-
-                                // Dynamic Unit Type Filtering & Bed/Bath Visibility
-                                const propertyTypeSelect = document.getElementById('property_type_id');
-                                const unitTypeSelect = document.getElementById('unit_type_id');
-                                const bedBathSection = document.getElementById('bed-bath-section');
-                                const unitTypeOptions = Array.from(unitTypeSelect.options);
-
-                                function filterUnitTypes(isInitial = false) {
-                                    const selectedTypeId = propertyTypeSelect.value;
-                                    const selectedTypeName = propertyTypeSelect.options[propertyTypeSelect.selectedIndex]?.dataset.name || '';
-                                    const currentUnitTypeId = unitTypeSelect.value;
-
-                                    // Show/Hide Bed Bath section for Commercial
-                                    if (selectedTypeName.includes('commercial')) {
-                                        bedBathSection.style.display = 'none';
-                                    } else {
-                                        bedBathSection.style.display = 'flex';
+                                    if (!place.geometry || !place.geometry.location) {
+                                        window.alert("No details available for input: '" + place.name + "'");
+                                        return;
                                     }
 
-                                    // Filter Unit Types
-                                    unitTypeSelect.innerHTML = '<option value="">Choose Category (Optional)</option>';
+                                    document.getElementById("latitude").value = place.geometry.location.lat();
+                                    document.getElementById("longitude").value = place.geometry.location.lng();
+                                });
+                            }
 
-                                    if (selectedTypeId) {
-                                        const filteredOptions = unitTypeOptions.filter(opt =>
-                                            opt.dataset.propertyType === selectedTypeId || opt.value === ""
-                                        );
+                            // Dynamic Unit Type Filtering & Bed/Bath Visibility
+                            const propertyTypeSelect = document.getElementById('property_type_id');
+                            const unitTypeSelect = document.getElementById('unit_type_id');
+                            const bedBathSection = document.getElementById('bed-bath-section');
+                            const unitTypeOptions = Array.from(unitTypeSelect.options);
 
-                                        filteredOptions.forEach(opt => {
-                                            if (opt.value !== "") {
-                                                const newOpt = opt.cloneNode(true);
-                                                if (isInitial && newOpt.value === currentUnitTypeId) {
-                                                    newOpt.selected = true;
-                                                }
-                                                unitTypeSelect.appendChild(newOpt);
+                            function filterUnitTypes(isInitial = false) {
+                                const selectedTypeId = propertyTypeSelect.value;
+                                const selectedTypeName = propertyTypeSelect.options[propertyTypeSelect.selectedIndex]?.dataset.name || '';
+                                const currentUnitTypeId = unitTypeSelect.value;
+
+                                // Show/Hide Bed Bath section for Commercial
+                                if (selectedTypeName.includes('commercial')) {
+                                    bedBathSection.style.display = 'none';
+                                } else {
+                                    bedBathSection.style.display = 'flex';
+                                }
+
+                                // Filter Unit Types
+                                unitTypeSelect.innerHTML = '<option value="">Choose Category (Optional)</option>';
+
+                                if (selectedTypeId) {
+                                    const filteredOptions = unitTypeOptions.filter(opt =>
+                                        opt.dataset.propertyType === selectedTypeId || opt.value === ""
+                                    );
+
+                                    filteredOptions.forEach(opt => {
+                                        if (opt.value !== "") {
+                                            const newOpt = opt.cloneNode(true);
+                                            if (isInitial && newOpt.value === currentUnitTypeId) {
+                                                newOpt.selected = true;
                                             }
-                                        });
+                                            unitTypeSelect.appendChild(newOpt);
+                                        }
+                                    });
+                                }
+                            }
+
+                            propertyTypeSelect.addEventListener('change', () => filterUnitTypes(false));
+
+                            // Initial call
+                            if (propertyTypeSelect.value) {
+                                filterUnitTypes(true);
+                            }
+
+                            // --- Dynamic Financial Fields ---
+                            const financingSelect = document.getElementById('financing_type');
+                            const mortgageDetails = document.getElementById('mortgage_details');
+
+                            if (financingSelect) {
+                                financingSelect.addEventListener('change', function () {
+                                    mortgageDetails.style.display = this.value === 'mortgage' ? 'block' : 'none';
+                                });
+                                if (financingSelect.value === 'mortgage') mortgageDetails.style.display = 'block';
+                            }
+
+                            // --- Dynamic Investment Fields ---
+                            const investmentSelect = document.getElementById('investment_type');
+                            const buyToSellDetails = document.getElementById('buy_to_sell_details');
+                            const rentalDetails = document.getElementById('rental_details');
+
+                            if (investmentSelect) {
+                                investmentSelect.addEventListener('change', function () {
+                                    buyToSellDetails.style.display = this.value === 'buy_to_sell' ? 'block' : 'none';
+                                    rentalDetails.style.display = this.value === 'rental' ? 'block' : 'none';
+                                });
+                                if (investmentSelect.value === 'buy_to_sell') buyToSellDetails.style.display = 'block';
+                                if (investmentSelect.value === 'rental') rentalDetails.style.display = 'block';
+                            }
+
+                            // --- Dynamic Tenure Fields ---
+                            const tenureSelect = document.getElementById('tenure_type');
+                            const leaseholdDetails = document.getElementById('leasehold_details');
+
+                            if (tenureSelect) {
+                                tenureSelect.addEventListener('change', function () {
+                                    leaseholdDetails.style.display = this.value === 'leasehold' ? 'block' : 'none';
+                                });
+                                if (tenureSelect.value === 'leasehold') leaseholdDetails.style.display = 'block';
+                            }
+
+                            // PREVIEW SYSTEM
+                            function setupPreview(inputId, previewId, isMultiple = false) {
+                                const input = document.getElementById(inputId);
+                                const preview = document.getElementById(previewId);
+
+                                input.addEventListener('change', function(e) {
+                                    if (isMultiple) preview.innerHTML = '';
+                                    else preview.innerHTML = '';
+
+                                    const files = e.target.files;
+                                    if (!files) return;
+
+                                    for (let i = 0; i < files.length; i++) {
+                                        const file = files[i];
+                                        if (!file.type.startsWith('image/')) continue;
+
+                                        const reader = new FileReader();
+                                        reader.onload = function(e) {
+                                            const div = document.createElement('div');
+                                            div.className = 'preview-item';
+                                            div.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+                                            preview.appendChild(div);
+                                        }
+                                        reader.readAsDataURL(file);
                                     }
+                                });
+                            }
+
+                            setupPreview('thumb-input', 'thumb-preview', false);
+                            setupPreview('gallery-input', 'gallery-preview', true);
+
+                            // Video Preview
+                            const videoInput = document.getElementById('video-input');
+                            const videoPreviewDiv = document.getElementById('video-preview');
+                            const videoElement = videoPreviewDiv.querySelector('video');
+
+                            videoInput.addEventListener('change', function(e) {
+                                const file = e.target.files[0];
+                                if (file && file.type.startsWith('video/')) {
+                                    const url = URL.createObjectURL(file);
+                                    videoElement.src = url;
+                                    videoPreviewDiv.style.display = 'block';
+                                } else {
+                                    videoPreviewDiv.style.display = 'none';
                                 }
+                            });
 
-                                propertyTypeSelect.addEventListener('change', () => filterUnitTypes(false));
-
-                                // Initial call
-                                if (propertyTypeSelect.value) {
-                                    filterUnitTypes(true);
-                                }
-
-                                // --- Dynamic Financial Fields ---
-                                const financingSelect = document.getElementById('financing_type');
-                                const mortgageDetails = document.getElementById('mortgage_details');
-
-                                if (financingSelect) {
-                                    financingSelect.addEventListener('change', function() {
-                                        mortgageDetails.style.display = this.value === 'mortgage' ? 'block' : 'none';
-                                    });
-                                    if(financingSelect.value === 'mortgage') mortgageDetails.style.display = 'block';
-                                }
-
-                                // --- Dynamic Investment Fields ---
-                                const investmentSelect = document.getElementById('investment_type');
-                                const buyToSellDetails = document.getElementById('buy_to_sell_details');
-                                const rentalDetails = document.getElementById('rental_details');
-
-                                if (investmentSelect) {
-                                    investmentSelect.addEventListener('change', function() {
-                                        buyToSellDetails.style.display = this.value === 'buy_to_sell' ? 'block' : 'none';
-                                        rentalDetails.style.display = this.value === 'rental' ? 'block' : 'none';
-                                    });
-                                    if(investmentSelect.value === 'buy_to_sell') buyToSellDetails.style.display = 'block';
-                                    if(investmentSelect.value === 'rental') rentalDetails.style.display = 'block';
-                                }
-
-                                // --- Dynamic Tenure Fields ---
-                                const tenureSelect = document.getElementById('tenure_type');
-                                const leaseholdDetails = document.getElementById('leasehold_details');
-
-                                if (tenureSelect) {
-                                    tenureSelect.addEventListener('change', function() {
-                                        leaseholdDetails.style.display = this.value === 'leasehold' ? 'block' : 'none';
-                                    });
-                                    if(tenureSelect.value === 'leasehold') leaseholdDetails.style.display = 'block';
-                                }
-
-                                // --- Dynamic Costs Rows ---
-                                let costIndex = 1000;
-                                window.addCostRow = function() {
-                                    const container = document.getElementById('costs_container');
-                                    const html = `
-                                        <div class="row g-2 mb-2 align-items-center cost-row">
-                                            <div class="col-7">
-                                                <input type="text" name="costs[${costIndex}][name]" class="form-control form-control-sm" placeholder="Cost Name (e.g. Stamp Duty)">
-                                            </div>
-                                            <div class="col-4">
-                                                <div class="input-group input-group-sm">
-                                                    <span class="input-group-text">£</span>
-                                                    <input type="number" step="0.01" name="costs[${costIndex}][amount]" class="form-control" placeholder="0.00">
+                            // --- Dynamic Costs Rows ---
+                            let costIndex = 1000;
+                            window.addCostRow = function () {
+                                const container = document.getElementById('costs_container');
+                                const html = `
+                                                <div class="row g-2 mb-2 align-items-center cost-row">
+                                                    <div class="col-7">
+                                                        <input type="text" name="costs[${costIndex}][name]" class="form-control form-control-sm" placeholder="Cost Name (e.g. Stamp Duty)">
+                                                    </div>
+                                                    <div class="col-4">
+                                                        <div class="input-group input-group-sm">
+                                                            <span class="input-group-text">£</span>
+                                                            <input type="number" step="0.01" name="costs[${costIndex}][amount]" class="form-control" placeholder="0.00">
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-1 text-end">
+                                                        <button type="button" class="btn btn-sm text-danger" onclick="this.closest('.cost-row').remove()"><i class="fas fa-trash"></i></button>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div class="col-1 text-end">
-                                                <button type="button" class="btn btn-sm text-danger" onclick="this.closest('.cost-row').remove()"><i class="fas fa-trash"></i></button>
-                                            </div>
-                                        </div>
-                                    `;
-                                    container.insertAdjacentHTML('beforeend', html);
-                                    costIndex++;
-                                }
+                                            `;
+                                container.insertAdjacentHTML('beforeend', html);
+                                costIndex++;
+                            }
 
-                                // --- Dynamic Tenants Rows ---
-                                let tenantIndex = 1000;
-                                window.addTenantRow = function() {
-                                    const container = document.getElementById('tenants_container');
-                                    const html = `
-                                        <div class="row g-2 mb-3 p-2 border rounded bg-white tenant-row position-relative">
-                                            <button type="button" class="btn btn-sm btn-link text-danger position-absolute top-0 end-0 text-decoration-none" onclick="this.closest('.tenant-row').remove()" style="z-index:10;">&times;</button>
-                                            <div class="col-md-6">
-                                                <label class="form-label small mb-1">Full Name</label>
-                                                <input type="text" name="tenants[${tenantIndex}][name]" class="form-control form-control-sm" required>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <label class="form-label small mb-1">Phone</label>
-                                                <input type="text" name="tenants[${tenantIndex}][phone]" class="form-control form-control-sm">
-                                            </div>
-                                            <div class="col-md-8">
-                                                <label class="form-label small mb-1">Email</label>
-                                                <input type="email" name="tenants[${tenantIndex}][email]" class="form-control form-control-sm">
-                                            </div>
-                                            <div class="col-md-4 d-flex align-items-end">
-                                                <div class="form-check mb-1">
-                                                    <input class="form-check-input" type="checkbox" name="tenants[${tenantIndex}][is_primary]" id="primary_${tenantIndex}">
-                                                    <label class="form-check-label small" for="primary_${tenantIndex}">Primary Contact</label>
+                            // --- Dynamic Tenants Rows ---
+                            let tenantIndex = 1000;
+                            window.addTenantRow = function () {
+                                const container = document.getElementById('tenants_container');
+                                const html = `
+                                                <div class="row g-2 mb-3 p-2 border rounded bg-white tenant-row position-relative">
+                                                    <button type="button" class="btn btn-sm btn-link text-danger position-absolute top-0 end-0 text-decoration-none" onclick="this.closest('.tenant-row').remove()" style="z-index:10;">&times;</button>
+                                                    <div class="col-md-6">
+                                                        <label class="form-label small mb-1">Full Name</label>
+                                                        <input type="text" name="tenants[${tenantIndex}][name]" class="form-control form-control-sm" required>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="form-label small mb-1">Phone</label>
+                                                        <input type="text" name="tenants[${tenantIndex}][phone]" class="form-control form-control-sm">
+                                                    </div>
+                                                    <div class="col-md-8">
+                                                        <label class="form-label small mb-1">Email</label>
+                                                        <input type="email" name="tenants[${tenantIndex}][email]" class="form-control form-control-sm">
+                                                    </div>
+                                                    <div class="col-md-4 d-flex align-items-end">
+                                                        <div class="form-check mb-1">
+                                                            <input class="form-check-input" type="checkbox" name="tenants[${tenantIndex}][is_primary]" id="primary_${tenantIndex}">
+                                                            <label class="form-check-label small" for="primary_${tenantIndex}">Primary Contact</label>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </div>
-                                    `;
-                                    container.insertAdjacentHTML('beforeend', html);
-                                    tenantIndex++;
-                                }
+                                            `;
+                                container.insertAdjacentHTML('beforeend', html);
+                                tenantIndex++;
+                            }
 
-                                if (typeof google === 'object' && typeof google.maps === 'object') {
-                                    initAutocomplete();
-                                }
-                            </script>
+                            if (typeof google === 'object' && typeof google.maps === 'object') {
+                                initAutocomplete();
+                            }
+                        </script>
                 @endpush
 
 @endsection

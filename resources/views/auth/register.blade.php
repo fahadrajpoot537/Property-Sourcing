@@ -121,58 +121,52 @@
                                         </div>
                                     </div>
 
-                                    <div class="col-md-6 mb-2">
-                                        <label class="form-label small fw-600 text-uppercase tracking-wider">City</label>
+                                    <div class="col-12 mb-2">
+                                        <label class="form-label small fw-600 text-uppercase tracking-wider">Location (Search City/Area)</label>
                                         <div class="input-group-modern">
                                             <i class="bi bi-geo icon"></i>
-                                            <input type="text" name="city" class="form-control" placeholder="London"
-                                                value="{{ old('city') }}">
+                                            <input type="text" id="location-input" name="location" class="form-control" placeholder="Search UK location..." 
+                                                value="{{ old('location') }}" required>
+                                        </div>
+                                        <input type="hidden" id="latitude" name="latitude" value="{{ old('latitude') }}">
+                                        <input type="hidden" id="longitude" name="longitude" value="{{ old('longitude') }}">
+                                    </div>
+
+                                    <div class="col-md-6 mb-2 investor-only">
+                                        <label class="form-label small fw-600 text-uppercase tracking-wider">Budget (£)</label>
+                                        <div class="input-group-modern">
+                                            <i class="bi bi-wallet icon"></i>
+                                            <input type="number" name="budget" class="form-control" placeholder="e.g. 500000"
+                                                value="{{ old('budget') }}">
                                         </div>
                                     </div>
 
-                                    <div class="col-12 mb-2">
-                                        <label class="form-label small fw-600 text-uppercase tracking-wider">Postal
-                                            Address</label>
-                                        <div class="input-group-modern">
-                                            <i class="bi bi-house icon"></i>
-                                            <input type="text" name="address" class="form-control"
-                                                placeholder="123 Street Name" value="{{ old('address') }}">
-                                        </div>
-                                    </div>
-
-                                    <div class="col-md-5 mb-2">
-                                        <label
-                                            class="form-label small fw-600 text-uppercase tracking-wider">Postcode</label>
-                                        <div class="input-group-modern">
-                                            <i class="bi bi-pin-map icon"></i>
-                                            <input type="text" name="postcode" class="form-control" placeholder="SW1A 1AA"
-                                                value="{{ old('postcode') }}">
-                                        </div>
-                                    </div>
-
-                                    <div class="col-md-7 mb-2" id="investment-section">
-                                        <label class="form-label small fw-600 text-uppercase tracking-wider">Investment
-                                            Interest</label>
-                                        <div class="input-group-modern">
-                                            <i class="bi bi-briefcase icon"></i>
-                                            <select name="investment_type" id="investment_type" class="form-select">
-                                                <option value="">Select Interest</option>
-                                                <option value="buy_to_sell" {{ old('investment_type') == 'buy_to_sell' ? 'selected' : '' }}>Buy to Sell</option>
-                                                <option value="rental" {{ old('investment_type') == 'rental' ? 'selected' : '' }}>Rental Property</option>
-                                                <option value="bmv_deal" {{ old('investment_type') == 'bmv_deal' ? 'selected' : '' }}>BMV Deal</option>
-                                                <option value="refurb_deal" {{ old('investment_type') == 'refurb_deal' ? 'selected' : '' }}>Refurb Deal</option>
-                                                <option value="hmo" {{ old('investment_type') == 'hmo' ? 'selected' : '' }}>
-                                                    HMO</option>
-                                                <option value="btl" {{ old('investment_type') == 'btl' ? 'selected' : '' }}>
-                                                    BTL (Buy to Let)</option>
-                                                <option value="brr" {{ old('investment_type') == 'brr' ? 'selected' : '' }}>
-                                                    BRR (Buy Refurb Refinance)</option>
-                                                <option value="r2r" {{ old('investment_type') == 'r2r' ? 'selected' : '' }}>
-                                                    R2R (Rent to Rent)</option>
-                                                <option value="serviced_accommodation" {{ old('investment_type') == 'serviced_accommodation' ? 'selected' : '' }}>
-                                                    Serviced Accommodation (SA)</option>
-                                                <option value="Other" {{ old('investment_type') == 'Other' ? 'selected' : '' }}>Other</option>
-                                            </select>
+                                    <div class="col-12 mb-2 investor-only">
+                                        <label class="form-label small fw-600 text-uppercase tracking-wider">Property Types of Interest</label>
+                                        <div class="row g-2 mt-1">
+                                            @php
+                                                $interests = [
+                                                    'BMV' => 'BMV',
+                                                    'HMO' => 'HMO',
+                                                    'Development Land' => 'Development Land',
+                                                    'Buy to Let' => 'Buy to Let',
+                                                    'Commercial' => 'Commercial',
+                                                    'Distressed Properties' => 'Distressed Properties',
+                                                    'Rent to Rent' => 'Rent to Rent',
+                                                    'SA' => 'SA (Serviced Accommodation)',
+                                                    'Auction Properties' => 'Auction Properties',
+                                                ];
+                                            @endphp
+                                            @foreach($interests as $key => $label)
+                                                <div class="col-md-6">
+                                                    <div class="form-check small text-muted">
+                                                        <input class="form-check-input" type="checkbox" name="property_interests[]" 
+                                                            value="{{ $key }}" id="interest_{{ $key }}" 
+                                                            {{ is_array(old('property_interests')) && in_array($key, old('property_interests')) ? 'checked' : '' }}>
+                                                        <label class="form-check-label" for="interest_{{ $key }}">{{ $label }}</label>
+                                                    </div>
+                                                </div>
+                                            @endforeach
                                         </div>
                                     </div>
 
@@ -215,25 +209,36 @@
         </div>
     </div>
 
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDtagAWzRL7h2Safzk7EwKK0x6v42RlsdI&libraries=places"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const roleSelect = document.getElementById('role-select');
-            const investmentSection = document.getElementById('investment-section');
-            const investmentType = document.getElementById('investment_type');
+            const investorFields = document.querySelectorAll('.investor-only');
 
-            function toggleInvestmentField() {
+            function toggleInvestorFields() {
                 if (roleSelect.value === 'agent') {
-                    investmentSection.style.display = 'none';
-                    investmentType.removeAttribute('required');
-                    investmentType.value = '';
+                    investorFields.forEach(el => el.style.display = 'none');
                 } else {
-                    investmentSection.style.display = 'block';
-                    investmentType.setAttribute('required', 'required');
+                    investorFields.forEach(el => el.style.display = 'block');
                 }
             }
 
-            roleSelect.addEventListener('change', toggleInvestmentField);
-            toggleInvestmentField(); // Initial state
+            roleSelect.addEventListener('change', toggleInvestorFields);
+            toggleInvestorFields();
+
+            const input = document.getElementById("location-input");
+            const autocomplete = new google.maps.places.Autocomplete(input, {
+                componentRestrictions: { country: "gb" },
+                fields: ["geometry"]
+            });
+
+            autocomplete.addListener("place_changed", () => {
+                const place = autocomplete.getPlace();
+                if (place.geometry) {
+                    document.getElementById("latitude").value = place.geometry.location.lat();
+                    document.getElementById("longitude").value = place.geometry.location.lng();
+                }
+            });
         });
     </script>
 

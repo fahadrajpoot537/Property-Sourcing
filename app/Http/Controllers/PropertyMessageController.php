@@ -58,7 +58,6 @@ class PropertyMessageController extends Controller
         try {
             Mail::send('emails.property_message', $data, function ($message) use ($adminEmail, $property, $user) {
                 $message->to($adminEmail)
-                    ->from('inquiries@propertysourcinggroup.co.uk', 'Property Sourcing Group')
                     ->subject('New Property Message: ' . $property->headline . ' from ' . $user->name);
             });
         } catch (\Exception $e) {

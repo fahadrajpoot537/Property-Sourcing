@@ -9,17 +9,26 @@ use Illuminate\Support\Facades\Auth;
 
 class PropertyController extends Controller
 {
+    public function dashboard()
+    {
+        $properties = Property::latest();
+
+        // Basic stats for dashboard
+        $stats = [
+            'total_properties' => Property::count(),
+            'avg_bmv' => Property::avg('bmv_percentage') ?? 0,
+            'recent_properties' => Property::latest()->take(5)->get()
+        ];
+
+        return view('admin.dashboard', compact('stats'));
+    }
+
     public function index()
     {
-        if (auth()->user()->role === 'agent') {
-            return redirect()->route('admin.available-properties.index');
-        }
-
-        $query = Property::where('user_id', auth()->id())->latest();
-
-        $properties = $query->paginate(10);
-        return view('admin.dashboard', compact('properties'));
+        $properties = Property::latest()->paginate(10);
+        return view('admin.portfolio', compact('properties'));
     }
+
 
     public function create()
     {

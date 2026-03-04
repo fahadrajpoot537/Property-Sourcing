@@ -4,15 +4,20 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Property Sourcing Group - UK's Leading Deal Sourcing Agents</title>
+    <title>@yield('meta_title', 'Property Sourcing Group - UK\'s Leading Deal Sourcing Agents')</title>
+    <meta name="description"
+        content="@yield('meta_description', 'The Property Sourcing Group provides high-yield investment property deals and expert sourcing services across the UK.')">
+    <meta name="keywords" content="@yield('meta_keywords', 'property sourcing, uk investment, buy to let, bmv deals')">
+    <meta name="google-site-verification" content="k_mil_w23PfACiQ0DlWn6XUopC6IWpvztJxspA4hUUs" />
 
-    <!-- Resource Hints for Performance -->
+    <!-- Resource Hints -->
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="dns-prefetch" href="https://images.unsplash.com">
     <link rel="icon" type="image/png" href="{{ asset('logo.png') }}">
-    <meta name="google-site-verification" content="k_mil_w23PfACiQ0DlWn6XUopC6IWpvztJxspA4hUUs" />
+    <meta name="google-site-verification" content="iWW37fBWjo85iXPAVbhWEFQRw4iW3xjAI0I5SA-3Lx0" />
+
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Google Fonts -->
@@ -255,7 +260,99 @@
             font-weight: 700;
             line-height: 0.9;
             text-align: right;
-            /* Aligns Group to right as per roughly design */
+        }
+
+        /* Mobile Responsive Overrides */
+        @media (max-width: 991px) {
+            .display-1 {
+                font-size: 3.5rem;
+            }
+
+            .display-2 {
+                font-size: 3rem;
+            }
+
+            .display-3 {
+                font-size: 2.5rem;
+            }
+
+            .display-4 {
+                font-size: 2.2rem;
+            }
+
+            .display-5 {
+                font-size: 2rem;
+            }
+
+            .display-6 {
+                font-size: 1.8rem;
+            }
+
+            h1 {
+                font-size: 2.2rem;
+            }
+
+            h2 {
+                font-size: 1.8rem;
+            }
+
+            h3 {
+                font-size: 1.5rem;
+            }
+
+            .main-header {
+                padding: 8px 0 !important;
+            }
+
+            .logo-container img {
+                max-height: 50px !important;
+            }
+
+            .header-info-compact {
+                font-size: 0.75rem !important;
+                gap: 10px !important;
+            }
+
+            .header-socials a {
+                font-size: 1.1rem !important;
+                margin-left: 8px !important;
+                margin-right: 8px !important;
+            }
+
+            .custom-navbar .nav-link {
+                padding: 12px 15px !important;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .top-pink-bar {
+                font-size: 0.85rem;
+                padding: 8px 12px;
+            }
+
+            .py-5 {
+                padding-top: 2.5rem !important;
+                padding-bottom: 2.5rem !important;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .display-3 {
+                font-size: 2rem;
+            }
+
+            .display-4 {
+                font-size: 1.8rem;
+            }
+
+            .btn-lg {
+                padding: 12px 20px;
+                font-size: 1rem;
+            }
+
+            .container {
+                padding-left: 20px;
+                padding-right: 20px;
+            }
         }
 
         .header-socials a {
@@ -580,51 +677,62 @@
     <!-- Top Header Section (Dark Blue) -->
     <header class="main-header">
         <div class="container">
-            <div class="row align-items-center">
+            <div class="row align-items-center g-2">
                 <!-- Logo Area -->
-                <div class="col-md-4 col-12 text-center text-md-start mb-3 mb-md-0">
-                    <a href="{{ route('home') }}"
-                        class="logo-container justify-content-center justify-content-md-start">
+                <div class="col-6 col-md-4 text-start">
+                    <a href="{{ route('home') }}" class="logo-container">
                         <img src="{{ asset('logo.png') }}" alt="Property Sourcing Group"
                             style="max-height: 85px; width: auto; object-fit: contain; image-rendering: -webkit-optimize-contrast;">
                     </a>
                 </div>
 
+                <!-- CTA Mobile (Only visible on small screens) -->
+                <div class="col-6 d-md-none text-end mt-1">
+                    <a href="{{ route('become-investor') }}"
+                        class="btn btn-custom-pink btn-sm text-nowrap px-3 py-2">Invest Now</a>
+                </div>
+
                 <!-- Contact & Socials Area -->
-                <div
-                    class="col-md-8 col-12 d-flex flex-column flex-md-row justify-content-end align-items-center gap-4">
-                    <!-- Contact Info Stacked -->
-                    <div class="d-flex flex-column gap-1">
-                        <!-- Phone -->
-                        <div class="d-flex align-items-center">
-                            <i class="bi bi-telephone-fill me-2 text-pink small"></i>
-                            <a href="tel:0203 468 0480" class="fw-bold text-blue text-decoration-none small">0203 468
-                                0480</a>
+                <div class="col-12 col-md-8 mt-2 mt-md-0">
+                    <div class="row g-2 g-md-4 align-items-center">
+                        <!-- Contact Info Cluster -->
+                        <div class="col-12 col-md-auto ms-md-auto">
+                            <div
+                                class="d-flex flex-row flex-md-column justify-content-center header-info-compact gap-3 gap-md-1 flex-wrap text-center text-md-start">
+                                <!-- Phone -->
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-telephone-fill me-1 text-pink small"></i>
+                                    <a href="tel:0203 468 0480" class="fw-bold text-blue text-decoration-none"
+                                        style="font-size: 0.85rem;">0203 468 0480</a>
+                                </div>
+
+                                <!-- Email -->
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-envelope-fill me-1 text-pink small"></i>
+                                    <a href="mailto:info@propertysourcinggroup.co.uk"
+                                        class="fw-bold text-blue text-decoration-none"
+                                        style="font-size: 0.82rem;">info@propertysourcinggroup.co.uk</a>
+                                </div>
+                            </div>
                         </div>
 
-                        <!-- Email -->
-                        <div class="d-flex align-items-center">
-                            <i class="bi bi-envelope-fill me-2 text-pink small"></i>
-                            <a href="mailto:info@propertysourcinggroup.co.uk"
-                                class="fw-bold text-blue text-decoration-none small">info@propertysourcinggroup.co.uk</a>
+                        <!-- Social Icons -->
+                        <div class="col col-md-auto">
+                            <div class="header-socials d-flex justify-content-center justify-content-md-start">
+                                <a href="https://facebook.com/profile.php?id=61587416069479" target="_blank"
+                                    class="social-facebook"><i class="bi bi-facebook"></i></a>
+                                <a href="https://instagram.com/propertysourcinggroup" target="_blank"
+                                    class="social-instagram"><i class="bi bi-instagram"></i></a>
+                                <a href="https://wa.me/+442034680480" target="_blank" class="social-whatsapp"><i
+                                        class="bi bi-whatsapp"></i></a>
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- Social Icons -->
-                    <div class="header-socials d-flex">
-                        <a href="https://facebook.com/profile.php?id=61587416069479" target="_blank"
-                            class="social-facebook"><i class="bi bi-facebook"></i></a>
-                        <a href="https://instagram.com/propertysourcinggroup" target="_blank"
-                            class="social-instagram"><i class="bi bi-instagram"></i></a>
-                        <a href="https://wa.me/+442034680480" target="_blank" class="social-whatsapp"><i
-                                class="bi bi-whatsapp"></i></a>
-                    </div>
-
-                    <!-- CTA -->
-                    <div
-                        class="d-flex flex-nowrap gap-2 ms-md-2 mt-3 mt-md-0 justify-content-center justify-content-md-end">
-                        <a href="{{ route('become-investor') }}" class="btn btn-custom-pink text-nowrap px-3">Invest
-                            Now</a>
+                        <!-- CTA Desktop (Hidden on mobile as it's at the top) -->
+                        <div class="col-md-auto d-none d-md-block">
+                            <a href="{{ route('become-investor') }}"
+                                class="btn btn-custom-pink text-nowrap px-4 py-2">Invest Now</a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -667,10 +775,10 @@
                         </ul>
                     </li>
                     <li class="nav-item"><a class="nav-link" href="{{ route('locations.index') }}">Locations</a></li>
-                    @auth
+                    @if(auth()->check() && auth()->user()->role === 'user')
                         <li class="nav-item"><a class="nav-link"
                                 href="{{ route('available-properties.index') }}">Properties</a></li>
-                    @endauth
+                    @endif
                     <li class="nav-item"><a class="nav-link" href="{{ route('news.index') }}">News</a></li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="{{ route('contact') }}" role="button"
@@ -773,9 +881,8 @@
                 <div class="col-lg-4 col-md-6">
                     <h5 class="fw-bold mb-4">Contact Us</h5>
                     <ul class="list-unstyled text-black opacity-75 small">
-                        <li class="d-flex mb-3"><i class="bi bi-geo-alt text-pink me-3"></i> 5-7 High Street London
-                            United Kingdom. E
-                            13 0AD</li>
+                        <li class="d-flex mb-3"><i class="bi bi-geo-alt text-pink me-3"></i>57 Hallsville Rd, London,
+                            United Kingdom, E16 1EE </li>
                         <li class="d-flex mb-3 align-items-center">
                             <i class="bi bi-telephone text-pink me-3"></i>
                             <a href="tel:0203 468 0480" class="text-black text-decoration-none">0203 468 0480</a>
@@ -792,6 +899,9 @@
             </div>
 
             <div class="text-center pt-4 border-top mt-5 small text-muted">
+                <p class="mb-2">Property Sourcing Group is a trading style of Property Sales Direct Limited. Property
+                    Sales Direct Limited is a company registered in England and Wales. Company Number 17051593 whose
+                    registered address is 57 Hallsville Rd, London, United Kingdom, E16 1EE</p>
                 &copy; {{ date('Y') }} Property Sourcing Group. All Rights Reserved. Designed By <a
                     href="https://mediajunkie.co.uk" target="_blank">Media Junkie</a>
             </div>
@@ -802,6 +912,110 @@
     <a href="https://wa.me/+442034680480" class="whatsapp-float" target="_blank">
         <i class="bi bi-whatsapp"></i>
     </a>
+
+    <!-- Cookie Consent Modal -->
+    <div id="cookieConsent" class="cookie-modal" style="display: none;">
+        <div class="cookie-content">
+            <div class="d-flex align-items-center mb-3">
+                <div class="cookie-icon me-3">
+                    <i class="bi bi-cookie text-pink h3 mb-0"></i>
+                </div>
+                <h5 class="fw-bold text-blue mb-0">We Value Your Privacy</h5>
+            </div>
+            <p class="text-muted small mb-4">
+                We use cookies to improve your experience and to help us understand how our website is used. See our
+                Cookie Policy for more details
+            </p>
+            <div class="d-flex gap-2">
+                <button id="acceptCookies" class="btn btn-custom-pink btn-sm flex-grow-1 py-2 fw-bold">Accept
+                    All</button>
+                <button id="refuseCookies" class="btn btn-outline-secondary btn-sm px-3 border-0">Reject</button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .cookie-modal {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            z-index: 9999;
+            max-width: 400px;
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .cookie-content {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            transition: opacity 0.3s ease;
+        }
+
+        .cookie-icon {
+            background: rgba(249, 92, 168, 0.1);
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 15px;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .cookie-modal {
+                left: 20px;
+                right: 20px;
+                bottom: 20px;
+                max-width: none;
+            }
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const consent = localStorage.getItem('cookieConsent');
+            if (!consent) {
+                setTimeout(() => {
+                    document.getElementById('cookieConsent').style.display = 'block';
+                }, 1500);
+            }
+
+            document.getElementById('acceptCookies').addEventListener('click', function () {
+                localStorage.setItem('cookieConsent', 'accepted');
+                closeCookieModal();
+            });
+
+            document.getElementById('refuseCookies').addEventListener('click', function () {
+                localStorage.setItem('cookieConsent', 'rejected');
+                closeCookieModal();
+            });
+
+            function closeCookieModal() {
+                const modal = document.getElementById('cookieConsent');
+                modal.style.transition = 'all 0.4s ease';
+                modal.style.opacity = '0';
+                modal.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                }, 400);
+            }
+        });
+    </script>
 
 
 

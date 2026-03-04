@@ -30,6 +30,9 @@ class NewsController extends Controller
             'content' => 'required|string',
             'author_name' => 'nullable|string|max:255',
             'published_at' => 'nullable|date',
+            'meta_title' => 'nullable|string|max:255',
+            'meta_description' => 'nullable|string',
+            'meta_keywords' => 'nullable|string|max:255',
         ]);
 
         $validated['slug'] = Str::slug($request->title);
@@ -63,6 +66,9 @@ class NewsController extends Controller
             'content' => 'required|string',
             'author_name' => 'nullable|string|max:255',
             'published_at' => 'nullable|date',
+            'meta_title' => 'nullable|string|max:255',
+            'meta_description' => 'nullable|string',
+            'meta_keywords' => 'nullable|string|max:255',
         ]);
 
         if ($request->title !== $news->title) {

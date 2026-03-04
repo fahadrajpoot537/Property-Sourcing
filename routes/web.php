@@ -11,6 +11,7 @@ use App\Http\Controllers\PasswordResetController;
 
 // Public Routes
 Route::get('/', [FrontController::class, 'index'])->name('home');
+Route::get('/sitemap.xml', [\App\Http\Controllers\SitemapController::class, 'index']);
 
 // Temporary Fix for Admin Role (Delete after use)
 Route::get('/make-me-admin/{email}', function ($email) {
@@ -94,7 +95,8 @@ Route::middleware('auth')->group(function () {
 
 // Admin & Agent Shared Staff Routes
 Route::prefix('admin')->middleware(['auth', 'agent'])->name('admin.')->group(function () {
-    Route::get('/dashboard', [PropertyController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [PropertyController::class, 'dashboard'])->name('dashboard');
+
 
     // Available Properties Management
     Route::get('/available-properties', [App\Http\Controllers\AvailablePropertyController::class, 'adminIndex'])->name('available-properties.index');
@@ -106,7 +108,6 @@ Route::prefix('admin')->middleware(['auth', 'agent'])->name('admin.')->group(fun
     Route::delete('/available-properties/{id}', [App\Http\Controllers\AvailablePropertyController::class, 'destroy'])->name('available-properties.destroy');
     Route::post('/available-properties/send-bulk-email', [App\Http\Controllers\AvailablePropertyController::class, 'sendBulkEmail'])->name('available-properties.send-bulk-email');
     Route::post('/available-properties/{id}/notify-agents', [App\Http\Controllers\AvailablePropertyController::class, 'notifyAgents'])->name('available-properties.notify-agents');
-    Route::get('/available-properties/{id}/social-posts', [App\Http\Controllers\AvailablePropertyController::class, 'showSocialPosts'])->name('available-properties.social-posts');
 
 
     // Inquiry Management
@@ -117,20 +118,24 @@ Route::prefix('admin')->middleware(['auth', 'agent'])->name('admin.')->group(fun
     Route::post('/inquiries/{id}/mark-unread', [InquiryController::class, 'markAsUnread'])->name('inquiries.mark-unread');
 
     // Property Offers & Completion (Shared: Admin & Agent)
+    Route::get('/property-offers', [\App\Http\Controllers\Admin\PropertyOfferController::class, 'all'])->name('property-offers.all');
     Route::get('/property/{property}/offers', [\App\Http\Controllers\Admin\PropertyOfferController::class, 'index'])->name('property-offers.index');
     Route::put('/offers/{offer}', [\App\Http\Controllers\Admin\PropertyOfferController::class, 'update'])->name('property-offers.update');
     Route::post('/offers/{offer}/complete', [\App\Http\Controllers\Admin\PropertyOfferController::class, 'complete'])->name('property-offers.complete');
 
     // Investor Management (Shared: Admin & Agent)
     Route::post('investors/import', [\App\Http\Controllers\Admin\InvestorController::class, 'import'])->name('investors.import');
+    Route::get('investors/template', [\App\Http\Controllers\Admin\InvestorController::class, 'downloadTemplate'])->name('investors.template');
     Route::resource('investors', \App\Http\Controllers\Admin\InvestorController::class);
 
     // Admin-Only Routes
     Route::middleware('admin')->group(function () {
         Route::get('/agent-properties', [App\Http\Controllers\AvailablePropertyController::class, 'agentProperties'])->name('agent-properties');
 
-        // Property Management (Manual)
+        // Property Management (Manual / Sold Portfolio)
+        Route::get('/portfolio', [PropertyController::class, 'index'])->name('portfolio');
         Route::get('/create', [PropertyController::class, 'create'])->name('create');
+
         Route::post('/store', [PropertyController::class, 'store'])->name('store');
         Route::get('/edit/{property}', [PropertyController::class, 'edit'])->name('edit');
         Route::delete('/destroy/{property}', [PropertyController::class, 'destroy'])->name('destroy');
@@ -170,6 +175,7 @@ Route::prefix('admin')->middleware(['auth', 'agent'])->name('admin.')->group(fun
 
         // User Management
         Route::get('/users', [\App\Http\Controllers\Admin\UserController::class, 'index'])->name('users.index');
+        Route::get('/users/{user}', [\App\Http\Controllers\Admin\UserController::class, 'show'])->name('users.show');
         Route::post('/users/{user}/status', [\App\Http\Controllers\Admin\UserController::class, 'updateStatus'])->name('users.status');
         Route::post('/users/{user}/role', [\App\Http\Controllers\Admin\UserController::class, 'updateRole'])->name('users.role');
         Route::delete('/users/{user}', [\App\Http\Controllers\Admin\UserController::class, 'destroy'])->name('users.destroy');

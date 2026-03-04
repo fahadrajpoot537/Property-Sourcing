@@ -36,7 +36,7 @@ class AuthController extends Controller
                 if (in_array(Auth::user()->role, ['admin', 'agent'])) {
                     return redirect()->intended('admin/dashboard');
                 }
-                return redirect()->intended('/');
+                return redirect()->intended('dashboard');
             }
         }
 

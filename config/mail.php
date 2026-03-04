@@ -59,6 +59,16 @@ return [
             'timeout' => null,
         ],
 
+        'qc' => [
+            'transport' => 'smtp',
+            'host' => env('MAIL_HOST', 'smtp.ionos.co.uk'),
+            'port' => env('MAIL_PORT', 587),
+            'encryption' => env('MAIL_ENCRYPTION', 'tls'),
+            'username' => env('MAIL_QC_USERNAME'),
+            'password' => env('MAIL_QC_PASSWORD'),
+            'timeout' => null,
+        ],
+
         'ses' => [
             'transport' => 'ses',
         ],

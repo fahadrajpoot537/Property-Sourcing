@@ -36,9 +36,11 @@ class UserProfileController extends Controller
             'company_name' => ['nullable', 'string', 'max:255'],
             'company_registration' => ['nullable', 'string', 'max:100'],
             'about_me' => ['nullable', 'string', 'max:1000'],
+            'budget' => ['nullable', 'numeric'],
+            'property_interests' => ['nullable', 'array'],
         ]);
 
-        $user->update($request->only([
+        $data = $request->only([
             'name',
             'email',
             'phone_number',
@@ -50,7 +52,18 @@ class UserProfileController extends Controller
             'company_name',
             'company_registration',
             'about_me',
-        ]));
+            'budget',
+        ]);
+
+        if ($request->has('property_interests')) {
+            $data['property_interests'] = implode(', ', $request->property_interests);
+        }
+
+        // Keep legacy/alternate fields in sync
+        $data['phone'] = $request->phone_number;
+        $data['address'] = $request->address_line1;
+
+        $user->update($data);
 
         return back()->with('success', 'Profile updated successfully.');
     }
