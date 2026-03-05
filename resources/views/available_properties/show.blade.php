@@ -19,8 +19,7 @@
                         <i class="bi bi-geo-alt-fill me-2 text-pink"></i>
                         @if($property->door_number) {{ $property->door_number }}, @endif
                         {{ $property->location }}
-                        @if($property->city) , {{ $property->city }} @endif
-                        @if($property->postcode) , {{ $property->postcode }} @endif
+
                     </p>
                 </div>
 

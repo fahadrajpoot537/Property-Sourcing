@@ -39,9 +39,12 @@ class User extends Authenticatable
         'investment_credits',
         'investment_type',
         'budget',
+        'min_budget',
+        'max_budget',
         'property_interests',
         'latitude',
         'longitude',
+        'is_cash_buy',
         'status',
         'is_active',
     ];

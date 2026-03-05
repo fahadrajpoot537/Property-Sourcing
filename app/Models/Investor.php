@@ -16,6 +16,8 @@ class Investor extends Model
         'email',
         'phone',
         'budget',
+        'min_budget',
+        'max_budget',
         'is_cash_buy',
         'location',
         'latitude',

@@ -18,7 +18,7 @@ class PropertyMatchingService
         // 1. Check CRM Investors
         $crmInvestors = Investor::with('agent')->get();
         foreach ($crmInvestors as $investor) {
-            if ($this->isMatch($investor, $property)) {
+            if ($investor instanceof Investor && $this->isMatch($investor, $property)) {
                 $this->notifyAgent($investor, $property);
             }
         }
@@ -56,7 +56,7 @@ class PropertyMatchingService
     private function isMatch($investor, AvailableProperty $property)
     {
         $isUser = $investor instanceof \App\Models\User;
-        
+
         // 1. Location match
         $locationMatch = false;
         $investorLocation = $isUser ? $investor->address : $investor->location;
@@ -65,31 +65,61 @@ class PropertyMatchingService
         $areasOfInterest = $isUser ? ($investor->areas_of_interest ?? []) : ($investor->areas_of_interest ?? []);
 
         if (!empty($areasOfInterest) && !in_array('All', $areasOfInterest)) {
-            foreach($areasOfInterest as $area) {
-                if (Str::contains(strtolower($property->location), strtolower($area))) {
+            foreach ($areasOfInterest as $area) {
+                if (
+                    Str::contains(strtolower($property->location), strtolower($area)) ||
+                    Str::contains(strtolower($property->postcode), strtolower($area))
+                ) {
                     $locationMatch = true;
                     break;
                 }
             }
         } elseif ($investorLocation && $property->location) {
-            if (Str::contains(strtolower($property->location), strtolower($investorLocation)) ||
-                Str::contains(strtolower($investorLocation), strtolower($property->location))) {
+            if (
+                Str::contains(strtolower($property->location), strtolower($investorLocation)) ||
+                Str::contains(strtolower($investorLocation), strtolower($property->location)) ||
+                Str::contains(strtolower($property->postcode), strtolower($investorLocation))
+            ) {
                 $locationMatch = true;
             }
             if (!$locationMatch && $investorLat && $investorLng && $property->latitude && $property->longitude) {
                 $distance = $this->calculateDistance($investorLat, $investorLng, $property->latitude, $property->longitude);
-                if ($distance <= 25) $locationMatch = true;
+                if ($distance <= 25)
+                    $locationMatch = true;
             }
         } else {
             $locationMatch = true;
         }
 
-        if (!$locationMatch) return false;
+        if (!$locationMatch)
+            return false;
 
         // 2. Budget match
-        $investorBudget = (float) preg_replace('/[^0-9.]/', '', $investor->budget);
-        if ($investorBudget > 0 && $property->price > $investorBudget * 1.1) { 
+        $propertyTotalPrice = (float) $property->price + (float) ($property->psg_fees ?? 0);
+
+        $minBudget = !empty($investor->min_budget) ? (float) $investor->min_budget : null;
+        $maxBudget = !empty($investor->max_budget) ? (float) $investor->max_budget : null;
+
+        // If both are present, ensure min <= max for the check
+        if ($minBudget !== null && $maxBudget !== null && $minBudget > $maxBudget) {
+            $temp = $minBudget;
+            $minBudget = $maxBudget;
+            $maxBudget = $temp;
+        }
+
+        if ($minBudget !== null && $propertyTotalPrice < $minBudget) {
             return false;
+        }
+        if ($maxBudget !== null && $propertyTotalPrice > $maxBudget) {
+            return false;
+        }
+
+        // If min/max budget not set but legacy budget is
+        if ($minBudget === null && $maxBudget === null) {
+            $investorBudget = (float) preg_replace('/[^0-9.]/', '', $investor->budget);
+            if ($investorBudget > 0 && $propertyTotalPrice > $investorBudget * 1.1) {
+                return false;
+            }
         }
 
         // 3. Cash Buyer match
@@ -98,38 +128,79 @@ class PropertyMatchingService
         }
 
         // 4. Deals of interest (Strategy match)
-        $dealsOfInterest = $isUser ? [] : ($investor->deals_of_interest ?? []);
+        $dealsOfInterest = $isUser ? ($investor->property_interests ? explode(', ', $investor->property_interests) : []) : ($investor->deals_of_interest ?? []);
+
         if (!empty($dealsOfInterest) && !in_array('All', $dealsOfInterest) && $property->investment_type) {
             $strategyFound = false;
-            foreach($dealsOfInterest as $deal) {
-                if (Str::contains(strtolower($property->investment_type), strtolower($deal))) {
+            $propType = strtolower($property->investment_type);
+
+            // Mapping for CRM Investor strategies to Property investment types
+            $strategyMap = [
+                'BMV' => ['bmv', 'bmv_deal'],
+                'Refurbishment' => ['refurb', 'refurb_deal'],
+                'Rental' => ['rental'],
+                'HMO' => ['hmo'],
+                'Development' => ['buy_to_sell', 'development'],
+                'Other' => ['other'],
+            ];
+
+            foreach ($dealsOfInterest as $deal) {
+                $dealLower = strtolower($deal);
+
+                // Direct match check
+                if (Str::contains($propType, $dealLower) || Str::contains($dealLower, $propType)) {
                     $strategyFound = true;
                     break;
                 }
+
+                // Map check
+                if (isset($strategyMap[$deal])) {
+                    foreach ($strategyMap[$deal] as $mapKey) {
+                        if (Str::contains($propType, $mapKey)) {
+                            $strategyFound = true;
+                            break 2;
+                        }
+                    }
+                }
             }
-            if (!$strategyFound) return false;
+            if (!$strategyFound)
+                return false;
         }
 
         // 5. Property Types match
-        $propertyTypes = $isUser ? [] : ($investor->property_types ?? []);
-        if (!empty($propertyTypes) && !in_array('Any', $propertyTypes) && $property->propertyType) {
+        $propertyTypes = $isUser ? ($investor->property_interests ? explode(', ', $investor->property_interests) : []) : ($investor->property_types ?? []);
+        if (!empty($propertyTypes) && !in_array('Any', $propertyTypes)) {
             $propertyTypeMatch = false;
-            foreach($propertyTypes as $type) {
-                if (Str::contains(strtolower($property->propertyType->name), strtolower($type))) {
+            $catName = $property->propertyType ? strtolower($property->propertyType->name) : '';
+            $unitName = $property->unitType ? strtolower($property->unitType->name) : '';
+
+            foreach ($propertyTypes as $type) {
+                $typeLower = strtolower($type);
+                if (
+                    ($catName && Str::contains($catName, $typeLower)) ||
+                    ($unitName && Str::contains($unitName, $typeLower)) ||
+                    ($catName && Str::contains($typeLower, $catName)) ||
+                    ($unitName && Str::contains($typeLower, $unitName))
+                ) {
                     $propertyTypeMatch = true;
                     break;
                 }
             }
-            if (!$propertyTypeMatch) return false;
+            if (!$propertyTypeMatch)
+                return false;
         }
 
         // 6. Bedrooms
-        if ($investor->min_bedrooms && $property->bedrooms < $investor->min_bedrooms) return false;
-        if ($investor->max_bedrooms && $property->bedrooms > $investor->max_bedrooms) return false;
+        if ($investor->min_bedrooms && $property->bedrooms < $investor->min_bedrooms)
+            return false;
+        if ($investor->max_bedrooms && $property->bedrooms > $investor->max_bedrooms)
+            return false;
 
         // 7. Bathrooms
-        if ($investor->min_bathrooms && $property->bathrooms < $investor->min_bathrooms) return false;
-        if ($investor->max_bathrooms && $property->bathrooms > $investor->max_bathrooms) return false;
+        if ($investor->min_bathrooms && $property->bathrooms < $investor->min_bathrooms)
+            return false;
+        if ($investor->max_bathrooms && $property->bathrooms > $investor->max_bathrooms)
+            return false;
 
         return true;
     }
@@ -156,12 +227,17 @@ class PropertyMatchingService
     /**
      * Get all matching properties for a given investor.
      */
-    public function getMatchesForInvestor($investorOrUser)
+    public function getMatchesForInvestor($investorOrUser, $agentId = null)
     {
-        $properties = AvailableProperty::where('status', 'approved')
-            ->orWhere('status', 'under offer')
-            ->latest()
-            ->get();
+        $query = AvailableProperty::with(['propertyType', 'unitType'])
+            ->whereIn('status', ['approved', 'under offer']);
+
+        // If agentId is provided (non-admin), only show properties added by that agent
+        if ($agentId) {
+            $query->where('user_id', $agentId);
+        }
+
+        $properties = $query->latest()->get();
 
         $matches = [];
         foreach ($properties as $property) {

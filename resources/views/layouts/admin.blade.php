@@ -7,6 +7,7 @@
     <title>@yield('title', 'Admin Dashboard') - Property Sourcing Group</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <link rel="icon" type="image/png" href="{{ asset('logo.png') }}">
     <style>
         :root {
@@ -237,6 +238,10 @@
 
         .user-dropdown:hover {
             background-color: #e3e6f0;
+        }
+
+        .user-dropdown::after {
+            display: none !important;
         }
 
         .user-avatar {
@@ -644,16 +649,16 @@
                     <a href="{{ route('admin.users.index') }}"
                         class="{{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
                         <i class="bi bi-people-fill"></i>
-                        <span>Investor Accounts</span>
+                        <span>Users Accounts</span>
                     </a>
-@php $hasPortfolio = Route::has('admin.portfolio'); @endphp
-@if ($hasPortfolio)
-                    <a href="{{ route('admin.portfolio') }}"
-                        class="{{ request()->routeIs('admin.portfolio') ? 'active' : '' }}">
-                        <i class="bi bi-building-check"></i>
-                        <span>Sold Portfolio</span>
-                    </a>
-@endif
+                    @php $hasPortfolio = Route::has('admin.portfolio'); @endphp
+                    @if ($hasPortfolio)
+                        <a href="{{ route('admin.portfolio') }}"
+                            class="{{ request()->routeIs('admin.portfolio') ? 'active' : '' }}">
+                            <i class="bi bi-building-check"></i>
+                            <span>Sold Portfolio</span>
+                        </a>
+                    @endif
                 @endif
 
                 @php
@@ -902,10 +907,29 @@
                     <i class="bi bi-envelope"></i>
                 </a>
             @endif
-            <div class="user-dropdown">
-                <div class="user-avatar">{{ substr(auth()->user()->name, 0, 1) }}</div>
-                <span class="fw-600">{{ auth()->user()->name }}</span>
-                <i class="bi bi-chevron-down small"></i>
+            <div class="dropdown">
+                <div class="user-dropdown dropdown-toggle" id="userMenu" data-bs-toggle="dropdown"
+                    aria-expanded="false">
+                    <div class="user-avatar">{{ substr(auth()->user()->name, 0, 1) }}</div>
+                    <span class="fw-600 d-none d-md-inline">{{ auth()->user()->name }}</span>
+                    <i class="bi bi-chevron-down small"></i>
+                </div>
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0 p-2 mt-2" aria-labelledby="userMenu">
+                    <li>
+                        <a class="dropdown-item rounded p-2" href="{{ route('user.profile.edit') }}">
+                            <i class="bi bi-person-circle me-2 text-primary"></i> My Profile
+                        </a>
+                    </li>
+                    <li>
+                        <hr class="dropdown-divider">
+                    </li>
+                    <li>
+                        <a class="dropdown-item rounded p-2 text-danger" href="#"
+                            onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                            <i class="bi bi-box-arrow-left me-2"></i> Logout
+                        </a>
+                    </li>
+                </ul>
             </div>
         </div>
     </div>
@@ -916,6 +940,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const toggle = document.getElementById('sidebarToggle');

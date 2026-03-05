@@ -76,11 +76,39 @@ class AvailablePropertyController extends Controller
             $query->where('user_id', Auth::id());
         }
 
+        // Search Filter (Headline or Location)
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('headline', 'like', "%{$search}%")
+                    ->orWhere('location', 'like', "%{$search}%")
+                    ->orWhere('postcode', 'like', "%{$search}%");
+            });
+        }
+
+        // Property Type Filter
+        if ($request->filled('property_type')) {
+            $query->where('property_type_id', $request->property_type);
+        }
+
+        // Marketing Purpose Filter
+        if ($request->filled('purpose')) {
+            $query->where('marketing_purpose_id', $request->purpose);
+        }
+
+        // Price Range Filter
+        if ($request->filled('min_price')) {
+            $query->where('price', '>=', $request->min_price);
+        }
+        if ($request->filled('max_price')) {
+            $query->where('price', '<=', $request->max_price);
+        }
+
         // Status Filter
         if ($request->filled('status')) {
             $status = $request->status;
             if ($status === 'draft') {
-                $query->where('status', 'pending');
+                $query->where('status', 'draft');
             } elseif ($status === 'published') {
                 $query->where('status', 'approved');
             } elseif ($status === 'sold') {
@@ -92,13 +120,16 @@ class AvailablePropertyController extends Controller
             }
         }
 
-        $properties = $query->latest()->paginate(10);
+        $properties = $query->latest()->paginate(15)->withQueryString();
 
         $otherAgents = \App\Models\User::where('role', 'agent')
             ->where('id', '!=', Auth::id())
             ->get();
 
-        return view('admin.available_properties.index', compact('properties', 'otherAgents'));
+        $propertyTypes = \App\Models\PropertyType::all();
+        $marketingPurposes = \App\Models\MarketingPurpose::all();
+
+        return view('admin.available_properties.index', compact('properties', 'otherAgents', 'propertyTypes', 'marketingPurposes'));
     }
 
     public function create()
@@ -131,7 +162,7 @@ class AvailablePropertyController extends Controller
             'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'gallery_images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'video' => 'nullable|mimetypes:video/mp4,video/quicktime,video/x-msvideo,video/x-matroska|max:20480',
-            'status' => 'nullable|string|in:pending,approved,disapproved,sold out,under offer',
+            'status' => 'nullable|string|in:pending,approved,disapproved,sold out,under offer,draft',
             'features' => 'nullable|array',
             'features.*' => 'exists:features,id',
             'investment_type' => 'nullable|string',
@@ -166,7 +197,7 @@ class AvailablePropertyController extends Controller
         if (auth()->user()->role === 'admin') {
             $data['status'] = $request->status ?? 'pending';
         } else {
-            if ($request->has('status') && in_array($request->status, ['pending', 'sold out', 'under offer'])) {
+            if ($request->has('status') && in_array($request->status, ['pending', 'draft', 'sold out', 'under offer'])) {
                 $data['status'] = $request->status;
             } else {
                 $data['status'] = 'pending';
@@ -284,7 +315,7 @@ class AvailablePropertyController extends Controller
             'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'gallery_images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'video' => 'nullable|mimetypes:video/mp4,video/quicktime,video/x-msvideo,video/x-matroska|max:20480',
-            'status' => 'nullable|string|in:pending,approved,disapproved,sold out,under offer',
+            'status' => 'nullable|string|in:pending,approved,disapproved,sold out,under offer,draft',
             'features' => 'nullable|array',
             'features.*' => 'exists:features,id',
             'investment_type' => 'nullable|string',
@@ -319,7 +350,7 @@ class AvailablePropertyController extends Controller
             if (auth()->user()->role === 'admin') {
                 $data['status'] = $request->status;
             } else {
-                if (in_array($request->status, ['pending', 'sold out'])) {
+                if (in_array($request->status, ['pending', 'draft', 'sold out'])) {
                     $data['status'] = $request->status;
                 }
             }
@@ -429,16 +460,20 @@ class AvailablePropertyController extends Controller
     public function updateStatus(Request $request, $id)
     {
         $property = AvailableProperty::findOrFail($id);
-        $request->validate(['status' => 'required|in:pending,approved,disapproved,sold out,under offer']);
+
+        $allowedStatuses = 'pending,approved,disapproved,sold out,under offer,draft';
+        $request->validate(['status' => 'required|in:' . $allowedStatuses]);
+
         if (auth()->user()->role === 'admin') {
             $property->status = $request->status;
         } else {
-            if (in_array($request->status, ['pending', 'sold out', 'under offer'])) {
+            if (in_array($request->status, ['pending', 'sold out', 'under offer', 'draft'])) {
                 $property->status = $request->status;
             } else {
-                return back()->with('error', 'Unauthorized.');
+                return back()->with('error', 'Unauthorized status transition.');
             }
         }
+
         $property->save();
         return back()->with('success', 'Status updated successfully');
     }
@@ -462,19 +497,48 @@ class AvailablePropertyController extends Controller
     public function sendBulkEmail(Request $request)
     {
         $request->validate(['property_ids' => 'required|array']);
+
         $properties = AvailableProperty::whereIn('id', $request->property_ids)->get();
         $sender = auth()->user();
         $recipients = collect();
-        if ($request->send_to_all_agents)
+
+        // 1. Add all agents if selected
+        if ($request->send_to_all_agents) {
             $recipients = $recipients->merge(\App\Models\User::where('role', 'agent')->pluck('email'));
-        if ($request->agent_ids)
-            $recipients = $recipients->merge(\App\Models\User::whereIn('id', $request->agent_ids)->pluck('email'));
-        if ($request->email)
-            $recipients->push($request->email);
-        $recipients = $recipients->unique()->filter();
-        foreach ($recipients as $recipient) {
-            \Illuminate\Support\Facades\Mail::to($recipient)->send(new \App\Mail\BulkPropertyMail($properties, $sender, $request->message ?? ''));
         }
-        return response()->json(['success' => true, 'message' => 'Emails sent.']);
+
+        // 2. Add specific agents if selected
+        if ($request->agent_ids && is_array($request->agent_ids)) {
+            $recipients = $recipients->merge(\App\Models\User::whereIn('id', $request->agent_ids)->pluck('email'));
+        }
+
+        // 3. Add custom emails (comma separated)
+        if ($request->custom_emails) {
+            $customEmails = array_map('trim', explode(',', $request->custom_emails));
+            foreach ($customEmails as $email) {
+                if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                    $recipients->push($email);
+                }
+            }
+        }
+
+        $recipients = $recipients->unique()->filter();
+
+        if ($recipients->isEmpty()) {
+            \Log::warning("Bulk email attempt with no recipients: properties " . implode(',', $request->property_ids));
+            return response()->json(['success' => false, 'message' => 'No valid recipients selected.']);
+        }
+
+        \Log::info("Sending bulk email to: " . $recipients->implode(', '));
+
+        foreach ($recipients as $recipient) {
+            try {
+                \Illuminate\Support\Facades\Mail::to($recipient)->send(new \App\Mail\BulkPropertyMail($properties, $sender, $request->message ?? ''));
+            } catch (\Exception $e) {
+                \Log::error("Failed to send bulk email to $recipient: " . $e->getMessage());
+            }
+        }
+
+        return response()->json(['success' => true, 'message' => 'Emails sent successfully to ' . $recipients->count() . ' recipients.']);
     }
 }

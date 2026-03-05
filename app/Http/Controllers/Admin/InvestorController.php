@@ -44,6 +44,8 @@ class InvestorController extends Controller
             'email' => 'nullable|email|max:255|unique:users,email',
             'phone' => 'nullable|string|max:20',
             'budget' => 'nullable|string|max:255',
+            'min_budget' => 'nullable|numeric',
+            'max_budget' => 'nullable|numeric',
             'is_cash_buy' => 'nullable|boolean',
             'location' => 'nullable|string|max:255',
             'latitude' => 'nullable|numeric',
@@ -68,7 +70,7 @@ class InvestorController extends Controller
                 'phone_number' => $request->phone,
                 'address' => $request->address ?? $request->location,
                 'password' => \Illuminate\Support\Facades\Hash::make($password),
-                'role' => 'user', 
+                'role' => 'user',
             ]);
             $userId = $user->id;
 
@@ -88,6 +90,8 @@ class InvestorController extends Controller
             'email' => $request->email,
             'phone' => $request->phone,
             'budget' => $request->budget,
+            'min_budget' => $request->min_budget,
+            'max_budget' => $request->max_budget,
             'is_cash_buy' => $request->has('is_cash_buy'),
             'location' => $request->location,
             'latitude' => $request->latitude,
@@ -120,7 +124,8 @@ class InvestorController extends Controller
             abort(403);
         }
 
-        $matchedProperties = $matchingService->getMatchesForInvestor($investor);
+        $agentId = Auth::user()->role === 'admin' ? null : Auth::id();
+        $matchedProperties = $matchingService->getMatchesForInvestor($investor, $agentId);
 
         return view('admin.investors.show', compact('investor', 'matchedProperties'));
     }
@@ -159,6 +164,8 @@ class InvestorController extends Controller
             'email' => 'nullable|email|max:255|unique:users,email,' . ($investor->user_id ?? 'NULL') . ',id',
             'phone' => 'nullable|string|max:20',
             'budget' => 'nullable|string|max:255',
+            'min_budget' => 'nullable|numeric',
+            'max_budget' => 'nullable|numeric',
             'is_cash_buy' => 'nullable|boolean',
             'location' => 'nullable|string|max:255',
             'latitude' => 'nullable|numeric',
@@ -179,6 +186,8 @@ class InvestorController extends Controller
             'email' => $request->email,
             'phone' => $request->phone,
             'budget' => $request->budget,
+            'min_budget' => $request->min_budget,
+            'max_budget' => $request->max_budget,
             'is_cash_buy' => $request->has('is_cash_buy'),
             'location' => $request->location,
             'latitude' => $request->latitude,

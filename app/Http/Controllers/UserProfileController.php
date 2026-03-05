@@ -37,7 +37,10 @@ class UserProfileController extends Controller
             'company_registration' => ['nullable', 'string', 'max:100'],
             'about_me' => ['nullable', 'string', 'max:1000'],
             'budget' => ['nullable', 'numeric'],
+            'min_budget' => ['nullable', 'numeric'],
+            'max_budget' => ['nullable', 'numeric'],
             'property_interests' => ['nullable', 'array'],
+            'is_cash_buy' => ['nullable', 'boolean'],
         ]);
 
         $data = $request->only([
@@ -53,11 +56,16 @@ class UserProfileController extends Controller
             'company_registration',
             'about_me',
             'budget',
+            'min_budget',
+            'max_budget',
+            'is_cash_buy',
         ]);
 
         if ($request->has('property_interests')) {
             $data['property_interests'] = implode(', ', $request->property_interests);
         }
+
+        $data['is_cash_buy'] = $request->has('is_cash_buy');
 
         // Keep legacy/alternate fields in sync
         $data['phone'] = $request->phone_number;

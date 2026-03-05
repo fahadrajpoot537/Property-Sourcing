@@ -95,10 +95,24 @@
                             <div class="mb-4">
                                 <h5 class="fw-bold text-muted mb-3">Investment Details</h5>
                                 <div class="row g-3">
-                                    <div class="col-md-6">
-                                        <label for="budget" class="form-label">Budget (£)</label>
-                                        <input type="number" class="form-control" id="budget" name="budget"
-                                            value="{{ old('budget', $user->budget) }}">
+                                    <div class="col-12">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <label class="form-label mb-0">Budget Range (£)</label>
+                                            <div class="form-check form-switch mb-0">
+                                                <input class="form-check-input" type="checkbox" name="is_cash_buy" id="is_cash_buy" value="1" {{ old('is_cash_buy', $user->is_cash_buy) ? 'checked' : '' }}>
+                                                <label class="form-check-label small text-muted" for="is_cash_buy">Verified Cash Buyer</label>
+                                            </div>
+                                        </div>
+                                        <div class="row g-2">
+                                            <div class="col-6">
+                                                <input type="number" class="form-control" id="min_budget" name="min_budget"
+                                                    value="{{ old('min_budget', $user->min_budget) }}" placeholder="Min Budget">
+                                            </div>
+                                            <div class="col-6">
+                                                <input type="number" class="form-control" id="max_budget" name="max_budget"
+                                                    value="{{ old('max_budget', $user->max_budget) }}" placeholder="Max Budget">
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="col-12">
                                         <label class="form-label">Property Types of Interest</label>

@@ -400,16 +400,8 @@
                             <label class="admin-label">Door Number</label>
                             <input type="text" name="door_number" class="admin-input" placeholder="e.g. 52">
                         </div>
-                        <div class="col-md-4 admin-form-group">
-                            <label class="admin-label">City</label>
-                            <input type="text" name="city" id="city-input" class="admin-input"
-                                placeholder="e.g. Manchester">
-                        </div>
-                        <div class="col-md-5 admin-form-group">
-                            <label class="admin-label">Post Code</label>
-                            <input type="text" name="postcode" id="postcode-input" class="admin-input"
-                                placeholder="e.g. M1 1AF">
-                        </div>
+                        <input type="hidden" name="city" id="city-input">
+                        <input type="hidden" name="postcode" id="postcode-input">
                     </div>
                 </div>
             </div>
@@ -630,9 +622,13 @@
                 </div>
             </div>
 
-            <div>
+            <div class="d-flex gap-2 align-items-center">
                 <button type="button" class="btn btn-admin-primary px-5 py-3 rounded-pill" id="next-btn">
                     Next Step <i class="bi bi-arrow-right ms-2"></i>
+                </button>
+                <button type="submit" name="status" value="draft"
+                    class="btn btn-outline-secondary px-5 py-3 rounded-pill fw-bold" id="draft-btn" style="display: none;">
+                    Save as Draft <i class="bi bi-file-earmark-text ms-2"></i>
                 </button>
                 <button type="submit" name="status" value="pending" class="btn btn-admin-pink px-5 py-3 rounded-pill"
                     id="finish-btn" style="display: none;">
@@ -665,10 +661,12 @@
 
                 if (currentStep === totalSteps) {
                     document.getElementById('next-btn').style.display = 'none';
-                    document.getElementById('finish-btn').style.display = 'block';
+                    document.getElementById('finish-btn').style.display = 'inline-block';
+                    document.getElementById('draft-btn').style.display = 'inline-block';
                 } else {
-                    document.getElementById('next-btn').style.display = 'block';
+                    document.getElementById('next-btn').style.display = 'inline-block';
                     document.getElementById('finish-btn').style.display = 'none';
+                    document.getElementById('draft-btn').style.display = 'none';
                 }
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }

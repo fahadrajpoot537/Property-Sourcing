@@ -37,8 +37,13 @@
                 <div class="icon">
                     <i class="bi bi-building"></i>
                 </div>
-                <h3>{{ $stats['total_properties'] }}</h3>
-                <p>Sold Properties</p>
+                @if(auth()->user()->role === 'admin')
+                    <h3>{{ $stats['total_sold'] }}</h3>
+                    <p>Sold Portfolio</p>
+                @else
+                    <h3>{{ $stats['total_available'] }}</h3>
+                    <p>My Available Properties</p>
+                @endif
             </div>
         </div>
         <div class="col-xl-3 col-md-6">
@@ -85,9 +90,16 @@
         <div class="col-lg-8">
             <div class="content-card shadow-sm border-0">
                 <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 fw-bold text-blue"><i class="bi bi-clock-history me-2"></i>Recently Added Sold
-                        Properties</h5>
-                    <a href="{{ route('admin.portfolio') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                    <h5 class="mb-0 fw-bold text-blue">
+                        <i class="bi bi-clock-history me-2"></i>
+                        @if(auth()->user()->role === 'admin')
+                            Recently Added Sold Properties
+                        @else
+                            My Recent Available Properties
+                        @endif
+                    </h5>
+                    <a href="{{ auth()->user()->role === 'admin' ? route('admin.portfolio') : route('admin.available-properties.index') }}"
+                        class="btn btn-sm btn-outline-primary">View All</a>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
@@ -95,7 +107,7 @@
                             <thead class="bg-light">
                                 <tr>
                                     <th class="ps-4">Listing</th>
-                                    <th>BMV</th>
+                                    <th>{{ auth()->user()->role === 'admin' ? 'BMV' : 'Price' }}</th>
                                     <th class="text-end pe-4">Action</th>
                                 </tr>
                             </thead>
@@ -104,17 +116,38 @@
                                     <tr>
                                         <td class="ps-4">
                                             <div class="d-flex align-items-center">
-                                                <img src="{{ $property->image_url ? (Str::startsWith($property->image_url, 'http') ? $property->image_url : asset('storage/' . $property->image_url)) : 'https://via.placeholder.com/60' }}"
+                                                @php
+                                                    $img = null;
+                                                    if ($property instanceof \App\Models\AvailableProperty) {
+                                                        $img = $property->thumbnail;
+                                                    } else {
+                                                        $img = $property->image_url;
+                                                    }
+                                                @endphp
+                                                <img src="{{ $img ? (Str::startsWith($img, 'http') ? $img : asset('storage/' . $img)) : 'https://via.placeholder.com/60' }}"
                                                     alt="Property" class="rounded me-3"
                                                     style="width: 40px; height: 40px; object-fit: cover;">
-                                                <div class="fw-bold text-dark small">{{ $property->location }}</div>
+                                                <div class="fw-bold text-dark small">
+                                                    {{ $property instanceof \App\Models\AvailableProperty ? $property->headline : $property->location }}
+                                                </div>
                                             </div>
                                         </td>
-                                        <td><span class="text-success fw-bold small">{{ $property->bmv_percentage }}%</span>
+                                        <td>
+                                            @if($property instanceof \App\Models\AvailableProperty)
+                                                <span
+                                                    class="text-pink fw-bold small">£{{ number_format($property->portal_sale_price ?? $property->price) }}</span>
+                                            @else
+                                                <span class="text-success fw-bold small">{{ $property->bmv_percentage }}%</span>
+                                            @endif
                                         </td>
                                         <td class="text-end pe-4">
-                                            <a href="{{ route('admin.edit', $property->id) }}" class="text-primary"><i
-                                                    class="bi bi-pencil"></i></a>
+                                            @if($property instanceof \App\Models\AvailableProperty)
+                                                <a href="{{ route('admin.available-properties.edit', $property->id) }}"
+                                                    class="text-primary"><i class="bi bi-pencil"></i></a>
+                                            @else
+                                                <a href="{{ route('admin.edit', $property->id) }}" class="text-primary"><i
+                                                        class="bi bi-pencil"></i></a>
+                                            @endif
                                         </td>
                                     </tr>
                                 @empty

@@ -81,7 +81,15 @@
                                     <div><i class="bi bi-envelope me-1"></i>{{ $investor->email ?? 'N/A' }}</div>
                                     <div><i class="bi bi-phone me-1"></i>{{ $investor->phone ?? 'N/A' }}</div>
                                 </td>
-                                <td>£{{ number_format((float)$investor->budget, 0) }}</td>
+                                <td>
+                                    @if($investor->min_budget || $investor->max_budget)
+                                        <div class="fw-bold text-pink">£{{ number_format($investor->min_budget/1000, 0) }}k - £{{ number_format($investor->max_budget/1000, 0) }}k</div>
+                                    @elseif($investor->budget)
+                                        <div class="fw-bold text-pink">Up to £{{ number_format((float) preg_replace('/[^0-9.]/', '', $investor->budget)/1000, 0) }}k</div>
+                                    @else
+                                        <span class="text-muted small">Not specified</span>
+                                    @endif
+                                </td>
                                 <td>
                                     @if($investor->deals_of_interest)
                                         @foreach($investor->deals_of_interest as $deal)

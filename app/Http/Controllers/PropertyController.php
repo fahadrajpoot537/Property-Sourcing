@@ -17,19 +17,40 @@ class PropertyController extends Controller
         if ($user->role === 'admin') {
             $count = \App\Models\User::where('role', 'user')->count();
             $label = 'Total Users';
+
+            // Admin sees global sold portfolio stats
+            $stats = [
+                'total_sold' => \App\Models\Property::count(),
+                'avg_bmv' => \App\Models\Property::avg('bmv_percentage') ?? 0,
+                'recent_properties' => \App\Models\Property::latest()->take(5)->get(),
+                'dynamic_count' => $count,
+                'dynamic_label' => $label,
+                'total_available' => \App\Models\AvailableProperty::count(),
+            ];
         } else {
             $count = \App\Models\Investor::where('agent_id', $user->id)->count();
             $label = 'My Investors';
-        }
 
-        // Basic stats for dashboard
-        $stats = [
-            'total_properties' => \App\Models\Property::count(),
-            'avg_bmv' => \App\Models\Property::avg('bmv_percentage') ?? 0,
-            'recent_properties' => \App\Models\Property::latest()->take(5)->get(),
-            'dynamic_count' => $count,
-            'dynamic_label' => $label,
-        ];
+            // Agents see their own available property stats
+            $agentPropertiesQuery = \App\Models\AvailableProperty::where('user_id', $user->id);
+            $totalAvailable = (clone $agentPropertiesQuery)->count();
+
+            // Calculate average BMV for available properties
+            // BMV = ((market_value_avg - portal_sale_price) / market_value_avg) * 100
+            $avgBmv = \App\Models\AvailableProperty::where('user_id', $user->id)
+                ->where('market_value_avg', '>', 0)
+                ->selectRaw('AVG((market_value_avg - portal_sale_price) / market_value_avg * 100) as avg_bmv')
+                ->first()->avg_bmv ?? 0;
+
+            $stats = [
+                'total_sold' => 0, // Agents don't manage sold properties
+                'avg_bmv' => $avgBmv,
+                'recent_properties' => \App\Models\AvailableProperty::where('user_id', $user->id)->latest()->take(5)->get(),
+                'dynamic_count' => $count,
+                'dynamic_label' => $label,
+                'total_available' => $totalAvailable,
+            ];
+        }
 
         return view('admin.dashboard', compact('stats'));
     }

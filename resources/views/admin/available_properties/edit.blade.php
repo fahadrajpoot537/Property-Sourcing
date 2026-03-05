@@ -445,16 +445,9 @@
                             <input type="text" name="door_number" class="admin-input"
                                 value="{{ old('door_number', $property->door_number) }}" placeholder="e.g. 52">
                         </div>
-                        <div class="col-md-4 admin-form-group">
-                            <label class="admin-label">City</label>
-                            <input type="text" name="city" id="city-input" class="admin-input"
-                                value="{{ old('city', $property->city) }}" placeholder="e.g. Manchester">
-                        </div>
-                        <div class="col-md-5 admin-form-group">
-                            <label class="admin-label">Post Code</label>
-                            <input type="text" name="postcode" id="postcode-input" class="admin-input"
-                                value="{{ old('postcode', $property->postcode) }}" placeholder="e.g. M1 1AF">
-                        </div>
+                        <input type="hidden" name="city" id="city-input" value="{{ old('city', $property->city) }}">
+                        <input type="hidden" name="postcode" id="postcode-input"
+                            value="{{ old('postcode', $property->postcode) }}">
                     </div>
                 </div>
             </div>
@@ -639,6 +632,8 @@
                                     <option value="approved" {{ old('status', $property->status) == 'approved' ? 'selected' : '' }}>Approved</option>
                                     <option value="disapproved" {{ old('status', $property->status) == 'disapproved' ? 'selected' : '' }}>Disapproved</option>
                                     <option value="sold out" {{ old('status', $property->status) == 'sold out' ? 'selected' : '' }}>Sold Out</option>
+                                    <option value="draft" {{ old('status', $property->status) == 'draft' ? 'selected' : '' }}>
+                                        Draft</option>
                                 </select>
                             </div>
                         @else
@@ -648,6 +643,8 @@
                                     <option value="pending" {{ old('status', $property->status) == 'pending' ? 'selected' : '' }}>
                                         Pending</option>
                                     <option value="sold out" {{ old('status', $property->status) == 'sold out' ? 'selected' : '' }}>Sold Out</option>
+                                    <option value="draft" {{ old('status', $property->status) == 'draft' ? 'selected' : '' }}>
+                                        Draft</option>
                                     @if(!in_array($property->status, ['pending', 'sold out']))
                                         <option value="{{ $property->status }}" selected disabled>{{ ucfirst($property->status) }}
                                         </option>
@@ -734,7 +731,7 @@
                 </div>
             </div>
 
-            <div>
+            <div class="d-flex gap-2 align-items-center">
                 <button type="button" class="btn btn-admin-primary px-5 py-3 rounded-pill" id="next-btn">
                     Next Step <i class="bi bi-arrow-right ms-2"></i>
                 </button>
@@ -769,9 +766,9 @@
 
                 if (currentStep === totalSteps) {
                     document.getElementById('next-btn').style.display = 'none';
-                    document.getElementById('finish-btn').style.display = 'block';
+                    document.getElementById('finish-btn').style.display = 'inline-block';
                 } else {
-                    document.getElementById('next-btn').style.display = 'block';
+                    document.getElementById('next-btn').style.display = 'inline-block';
                     document.getElementById('finish-btn').style.display = 'none';
                 }
                 window.scrollTo({ top: 0, behavior: 'smooth' });

@@ -132,14 +132,37 @@
                                         <input type="hidden" id="longitude" name="longitude" value="{{ old('longitude') }}">
                                     </div>
 
-                                    <div class="col-md-6 mb-2 investor-only">
-                                        <label class="form-label small fw-600 text-uppercase tracking-wider">Budget (£)</label>
-                                        <div class="input-group-modern">
-                                            <i class="bi bi-wallet icon"></i>
-                                            <input type="number" name="budget" class="form-control" placeholder="e.g. 500000"
-                                                value="{{ old('budget') }}">
-                                        </div>
-                                    </div>
+                                            <div class="col-12 investor-only mb-2">
+                                                <label class="form-label small fw-600 text-uppercase tracking-wider">Are you a cash buyer? *</label>
+                                                <div class="input-group-modern">
+                                                    <i class="bi bi-cash-coin icon"></i>
+                                                    <select name="is_cash_buy" class="form-select investor-required">
+                                                        <option value="" disabled selected>Please select...</option>
+                                                        <option value="1" {{ old('is_cash_buy') == '1' ? 'selected' : '' }}>Yes, I am a cash buyer</option>
+                                                        <option value="0" {{ old('is_cash_buy') == '0' ? 'selected' : '' }}>No, I need financing</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-12 investor-only mb-2">
+                                                <label class="form-label small fw-600 text-uppercase tracking-wider">Budget Range (£)</label>
+                                                <div class="row g-2">
+                                                    <div class="col-6">
+                                                        <div class="input-group-modern">
+                                                            <i class="bi bi-wallet icon"></i>
+                                                            <input type="number" name="min_budget" class="form-control" placeholder="Min"
+                                                                value="{{ old('min_budget') }}">
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <div class="input-group-modern">
+                                                            <i class="bi bi-wallet icon"></i>
+                                                            <input type="number" name="max_budget" class="form-control" placeholder="Max"
+                                                                value="{{ old('max_budget') }}">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
 
                                     <div class="col-12 mb-2 investor-only">
                                         <label class="form-label small fw-600 text-uppercase tracking-wider">Property Types of Interest</label>
@@ -216,10 +239,13 @@
             const investorFields = document.querySelectorAll('.investor-only');
 
             function toggleInvestorFields() {
+                const investorRequired = document.querySelectorAll('.investor-required');
                 if (roleSelect.value === 'agent') {
                     investorFields.forEach(el => el.style.display = 'none');
+                    investorRequired.forEach(el => el.removeAttribute('required'));
                 } else {
                     investorFields.forEach(el => el.style.display = 'block');
+                    investorRequired.forEach(el => el.setAttribute('required', 'required'));
                 }
             }
 

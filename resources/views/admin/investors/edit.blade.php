@@ -61,11 +61,21 @@
                 </div>
                 <div class="card-body p-4">
                     <div class="row g-4">
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold">Total Budget</label>
-                            <div class="input-group">
-                                <span class="input-group-text">£</span>
-                                <input type="number" name="budget" class="form-control" value="{{ old('budget', $investor->budget) }}">
+                        <div class="col-md-8">
+                            <label class="form-label fw-bold">Budget Range</label>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <div class="input-group">
+                                        <span class="input-group-text">£</span>
+                                        <input type="number" name="min_budget" class="form-control" value="{{ old('min_budget', $investor->min_budget) }}" placeholder="Min Budget">
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="input-group">
+                                        <span class="input-group-text">£</span>
+                                        <input type="number" name="max_budget" class="form-control" value="{{ old('max_budget', $investor->max_budget) }}" placeholder="Max Budget">
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="col-md-4 d-flex align-items-end">

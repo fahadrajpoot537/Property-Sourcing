@@ -26,7 +26,10 @@ class RegisterController extends Controller
             'latitude' => ['nullable', 'numeric'],
             'longitude' => ['nullable', 'numeric'],
             'budget' => ['nullable', 'numeric'],
+            'min_budget' => ['nullable', 'numeric'],
+            'max_budget' => ['nullable', 'numeric'],
             'property_interests' => ['nullable', 'array'],
+            'is_cash_buy' => [$request->role == 'user' ? 'required' : 'nullable', 'boolean'],
             'role' => ['required', 'in:user,agent'],
         ]);
 
@@ -42,7 +45,10 @@ class RegisterController extends Controller
             'latitude' => $request->latitude,
             'longitude' => $request->longitude,
             'budget' => $request->budget,
+            'min_budget' => $request->min_budget,
+            'max_budget' => $request->max_budget,
             'property_interests' => $request->property_interests ? implode(', ', $request->property_interests) : null,
+            'is_cash_buy' => $request->role == 'user' ? (bool) $request->is_cash_buy : false,
             'status' => 1,
             'is_active' => true,
         ]);

@@ -147,21 +147,35 @@
                                     </span>
                                 </td>
                                 <td>
-                                    @if($user->phone)
-                                        <div class="small text-muted">
-                                            <i class="bi bi-telephone me-2"></i>{{ $user->phone }}
-                                        </div>
-                                    @else
-                                        <span class="text-muted small">No Phone</span>
+                                    <div class="small text-muted mb-1">
+                                        <i class="bi bi-telephone me-2"></i>{{ $user->phone ?? $user->phone_number ?? 'No Phone' }}
+                                    </div>
+                                    @if($user->is_cash_buy)
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle py-0 px-2 tiny shadow-sm" style="font-size: 0.65rem;">
+                                            <i class="bi bi-cash me-1"></i>CASH BUYER
+                                        </span>
                                     @endif
                                 </td>
                                 <td>
-                                    @if($user->investment_type)
-                                        <span class="badge bg-info-subtle text-info border border-info-subtle px-2 py-1">
-                                            {{ $user->investment_type }}
-                                        </span>
+                                    @php
+                                        $interests = $user->investment_type ?: $user->property_interests;
+                                    @endphp
+                                    @if($interests)
+                                        <div class="small fw-600 text-dark mb-1">{{ Str::limit($interests, 30) }}</div>
                                     @else
-                                        <span class="text-muted small">N/A</span>
+                                        <div class="small text-muted mb-1">No Interests</div>
+                                    @endif
+
+                                    @if($user->min_budget || $user->max_budget)
+                                        <div class="tiny text-muted fw-bold" style="font-size: 0.72rem; color: var(--primary-pink) !important;">
+                                            £{{ number_format($user->min_budget/1000, 0) }}k - £{{ number_format($user->max_budget/1000, 0) }}k
+                                        </div>
+                                    @elseif($user->budget)
+                                        <div class="tiny text-muted fw-bold" style="font-size: 0.72rem; color: var(--primary-pink) !important;">
+                                            Up to £{{ number_format($user->budget/1000, 0) }}k
+                                        </div>
+                                    @else
+                                        <div class="tiny text-muted small">Budget N/A</div>
                                     @endif
                                 </td>
                                 <td>
