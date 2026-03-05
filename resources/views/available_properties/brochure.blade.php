@@ -209,8 +209,8 @@
         <div class="property-title">{{ $property->headline }}</div>
         <div class="property-location">{{ $property->location }}</div>
 
-        @if($property->thumbnail && file_exists(public_path('storage/' . $property->thumbnail)))
-            <img src="{{ public_path('storage/' . $property->thumbnail) }}" class="main-image">
+        @if($thumbnailBase64)
+            <img src="{{ $thumbnailBase64 }}" class="main-image">
         @endif
 
         <table class="details-grid">
@@ -358,12 +358,17 @@
             {!! $property->full_description !!}
         </div>
 
-        @if($property->latitude && $property->longitude)
+        @if($mapBase64)
             <div class="section-title">Location Map</div>
             <div style="margin-bottom: 30px; text-align: center;">
-                <img src="https://maps.googleapis.com/maps/api/staticmap?center={{ $property->latitude }},{{ $property->longitude }}&zoom=15&size=600x300&maptype=roadmap&markers=color:red%7C{{ $property->latitude }},{{ $property->longitude }}&key=AIzaSyDtagAWzRL7h2Safzk7EwKK0x6v42RlsdI"
-                    style="width: 100%; border-radius: 10px; border: 1px solid #eee;">
+                <img src="{{ $mapBase64 }}" style="width: 100%; border-radius: 10px; border: 1px solid #eee;">
                 <div style="font-size: 11px; color: #888; margin-top: 5px;">{{ $property->location }}</div>
+            </div>
+        @elseif($property->latitude && $property->longitude)
+            <div class="section-title">Location</div>
+            <div style="margin-bottom: 30px; padding: 15px; background: #f8f9fc; border-radius: 10px; font-size: 13px;">
+                <strong>Coordinates:</strong> {{ $property->latitude }}, {{ $property->longitude }}<br>
+                <strong>Address:</strong> {{ $property->location }}
             </div>
         @endif
 
@@ -447,14 +452,12 @@
             <div style="page-break-before: always;"></div>
             <div class="section-title" style="margin-top: 40px;">Photo Gallery</div>
             <table width="100%" cellspacing="15" cellpadding="0" style="margin-left: -15px;">
-                @foreach(array_chunk($property->gallery_images, 2) as $row)
+                @foreach(array_chunk($galleryBase64, 2) as $row)
                     <tr>
-                        @foreach($row as $image)
+                        @foreach($row as $imageBase64)
                             <td width="50%" style="vertical-align: top; padding: 10px;">
-                                @if(file_exists(public_path('storage/' . $image)))
-                                    <img src="{{ public_path('storage/' . $image) }}"
-                                        style="width: 100%; height: auto; border-radius: 8px; display: block;">
-                                @endif
+                                <img src="{{ $imageBase64 }}"
+                                    style="width: 100%; height: auto; border-radius: 8px; display: block;">
                             </td>
                         @endforeach
                         @if(count($row) < 2)
@@ -482,7 +485,9 @@
                         </div>
                     </td>
                     <td width="40%" style="text-align: right; vertical-align: middle;">
-                        <img src="{{ public_path('logo.png') }}" style="height: 40px; opacity: 0.8;">
+                        @if($logoBase64)
+                            <img src="{{ $logoBase64 }}" style="height: 40px; opacity: 0.8;">
+                        @endif
                     </td>
                 </tr>
             </table>
@@ -493,30 +498,27 @@
                         <td width="33%">
                             <a href="mailto:{{ $user->email }}"
                                 style="display: block; padding: 12px 5px; background-color: #1E4072; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 12px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                                <span style="font-size: 14px;">✉</span> Email
+                                Email
                             </a>
                         </td>
                         @if($user->phone)
                             <td width="33%">
                                 <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $user->phone) }}"
                                     style="display: block; padding: 12px 5px; background-color: #25D366; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 12px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                                    <span style="font-size: 14px;">✆</span> WhatsApp
+                                    WhatsApp
                                 </a>
                             </td>
                             <td width="33%">
                                 <a href="tel:{{ $user->phone }}"
                                     style="display: block; padding: 12px 5px; background-color: #F95CA8; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 12px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                                    <span style="font-size: 14px;">☎</span> Call Now
+                                    Call Now
                                 </a>
                             </td>
                         @endif
                     </tr>
                 </table>
             </div>
-            <div
-                style="margin-top: 15px; font-size: 10px; color: #999; text-align: center; border-top: 1px solid #fafafa; padding-top: 10px;">
-                Download provided by Property Sourcing Group. Connect with our experts today.
-            </div>
+
         </div>
     </div>
 

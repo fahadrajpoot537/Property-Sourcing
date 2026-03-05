@@ -8,8 +8,8 @@
                     <div class="row g-0">
                         <!-- Left Side: Decorative/Information -->
                         <div class="col-lg-5 d-none d-lg-flex login-hero" style="background: linear-gradient(rgba(30, 64, 114, 0.9), rgba(30, 64, 114, 0.9)), 
-                                url('https://images.unsplash.com/photo-1570129477492-45c003edd2be?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'); 
-                                background-size: cover; background-position: center;">
+                                    url('https://images.unsplash.com/photo-1570129477492-45c003edd2be?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'); 
+                                    background-size: cover; background-position: center;">
                             <div class="p-5 text-white w-100 mt-auto">
                                 <h2 class="display-6 fw-bold mb-3">Welcome Back!</h2>
                                 <p class="opacity-75 mb-4">Log in to your account to manage your property portfolio and
@@ -72,8 +72,9 @@
                                     </div>
                                     <div class="input-group-modern">
                                         <i class="bi bi-lock icon"></i>
-                                        <input type="password" name="password" class="form-control" placeholder="••••••••"
-                                            required>
+                                        <input type="password" name="password" id="password" class="form-control"
+                                            placeholder="••••••••" required>
+                                        <i class="bi bi-eye-slash toggle-password" data-target="password"></i>
                                     </div>
                                 </div>
 
@@ -105,6 +106,27 @@
         </div>
     </div>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Password Toggle Logic
+            document.querySelectorAll('.toggle-password').forEach(button => {
+                button.addEventListener('click', function () {
+                    const targetId = this.getAttribute('data-target');
+                    const input = document.getElementById(targetId);
+                    if (input.type === 'password') {
+                        input.type = 'text';
+                        this.classList.remove('bi-eye-slash');
+                        this.classList.add('bi-eye');
+                    } else {
+                        input.type = 'password';
+                        this.classList.remove('bi-eye');
+                        this.classList.add('bi-eye-slash');
+                    }
+                });
+            });
+        });
+    </script>
+
     <style>
         .login-container {
             border-radius: 20px;
@@ -135,12 +157,26 @@
 
         .input-group-modern .form-control {
             padding-left: 45px;
+            padding-right: 45px;
             height: 50px;
             border-radius: 10px;
             border: 1px solid #e9ecef;
             background-color: #f8f9fa;
             font-size: 0.95rem;
             transition: all 0.3s ease;
+        }
+
+        .input-group-modern .toggle-password {
+            position: absolute;
+            right: 15px;
+            color: #adb5bd;
+            cursor: pointer;
+            z-index: 5;
+            transition: color 0.3s ease;
+        }
+
+        .input-group-modern .toggle-password:hover {
+            color: var(--primary-pink);
         }
 
         .input-group-modern .form-control:focus {

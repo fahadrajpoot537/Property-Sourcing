@@ -14,6 +14,10 @@ class UserDashboardController extends Controller
     {
         $user = Auth::user();
 
+        if (in_array($user->role, ['admin', 'agent'])) {
+            return redirect()->route('admin.dashboard');
+        }
+
         // You might want to pass counts or recent activity to the dashboard
         $offersCount = $user->offers()->count();
         $favoritesCount = $user->favorites()->count();

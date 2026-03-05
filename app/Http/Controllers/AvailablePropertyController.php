@@ -16,25 +16,40 @@ class AvailablePropertyController extends Controller
         $query = AvailableProperty::where('is_active', true)
             ->whereIn('status', ['approved', 'under offer']);
 
-        // Price Filter
+        // Price Filter (Using portal_sale_price as it's the investor's cost)
         if ($request->filled('min_price')) {
-            $query->where('price', '>=', $request->min_price);
+            $query->where('portal_sale_price', '>=', $request->min_price);
         }
         if ($request->filled('max_price')) {
-            $query->where('price', '<=', $request->max_price);
+            $query->where('portal_sale_price', '<=', $request->max_price);
         }
 
         // Beds & Baths
         if ($request->filled('bedrooms')) {
-            $query->where('bedrooms', '>=', $request->bedrooms);
+            $query->where('bedrooms', '=', $request->bedrooms);
         }
         if ($request->filled('bathrooms')) {
-            $query->where('bathrooms', '>=', $request->bathrooms);
+            $query->where('bathrooms', '=', $request->bathrooms);
         }
 
-        // Property Type
+        // Property Category (Parent)
         if ($request->filled('property_type')) {
             $query->where('property_type_id', $request->property_type);
+        }
+
+        // Property Type (Specific Unit Type)
+        if ($request->filled('unit_type')) {
+            $query->where('unit_type_id', $request->unit_type);
+        }
+
+        // Investment Strategy
+        if ($request->filled('investment_strategy')) {
+            $query->where('investment_type', $request->investment_strategy);
+        }
+
+        // Tenure
+        if ($request->filled('tenure')) {
+            $query->where('tenure_type', $request->tenure);
         }
 
         // Location & Radius Search
@@ -49,10 +64,15 @@ class AvailablePropertyController extends Controller
             $query->where('location', 'like', '%' . $request->location . '%');
         }
 
-        $properties = $query->with(['propertyType', 'marketingPurpose'])->latest()->paginate(12)->withQueryString();
-        $propertyTypes = \App\Models\PropertyType::all();
+        $properties = $query->with(['propertyType', 'marketingPurpose', 'unitType'])
+            ->latest()
+            ->paginate(12)
+            ->withQueryString();
 
-        return view('available_properties.index', compact('properties', 'propertyTypes'));
+        $propertyTypes = \App\Models\PropertyType::all();
+        $unitTypes = \App\Models\UnitType::all();
+
+        return view('available_properties.index', compact('properties', 'propertyTypes', 'unitTypes'));
     }
 
     public function agentProperties()
@@ -444,7 +464,52 @@ class AvailablePropertyController extends Controller
             $property = AvailableProperty::with(['propertyType', 'marketingPurpose', 'unitType', 'features', 'costs'])->findOrFail($id);
             $user = auth()->user();
             $filename = 'Brochure_' . preg_replace('/[^A-Za-z0-9_\-]/', '_', $property->headline) . '.pdf';
-            $pdf = Pdf::loadView('available_properties.brochure', compact('property', 'user'));
+
+            // Fetch Map as Base64
+            $mapBase64 = null;
+            if ($property->latitude && $property->longitude) {
+                try {
+                    $apiKey = 'AIzaSyDtagAWzRL7h2Safzk7EwKK0x6v42RlsdI';
+                    $mapUrl = "https://maps.googleapis.com/maps/api/staticmap?center={$property->latitude},{$property->longitude}&zoom=15&size=600x300&maptype=roadmap&markers=color:red%7C{$property->latitude},{$property->longitude}&key={$apiKey}";
+                    $mapData = @file_get_contents($mapUrl);
+                    if ($mapData) {
+                        $mapBase64 = 'data:image/png;base64,' . base64_encode($mapData);
+                    }
+                } catch (\Exception $e) {
+                    \Log::warning('Brochure Map Fetch failed: ' . $e->getMessage());
+                }
+            }
+
+            // Fetch Property Thumbnail as Base64
+            $thumbnailBase64 = null;
+            if ($property->thumbnail && Storage::disk('public')->exists($property->thumbnail)) {
+                $thumbData = Storage::disk('public')->get($property->thumbnail);
+                $thumbnailBase64 = 'data:image/jpeg;base64,' . base64_encode($thumbData);
+            }
+
+            // Fetch Gallery Images as Base64
+            $galleryBase64 = [];
+            if ($property->gallery_images) {
+                foreach ($property->gallery_images as $image) {
+                    if (Storage::disk('public')->exists($image)) {
+                        $imgData = Storage::disk('public')->get($image);
+                        $galleryBase64[] = 'data:image/jpeg;base64,' . base64_encode($imgData);
+                    }
+                }
+            }
+
+            // Fetch Logo as Base64
+            $logoBase64 = null;
+            if (file_exists(public_path('logo.png'))) {
+                $logoData = file_get_contents(public_path('logo.png'));
+                $logoBase64 = 'data:image/png;base64,' . base64_encode($logoData);
+            }
+
+            $pdf = Pdf::setOptions([
+                'isRemoteEnabled' => true,
+                'isHtml5ParserEnabled' => true,
+            ])->loadView('available_properties.brochure', compact('property', 'user', 'mapBase64', 'thumbnailBase64', 'galleryBase64', 'logoBase64'));
+
             return $pdf->download($filename);
         } catch (\Exception $e) {
             return back()->with('error', 'Could not generate brochure: ' . $e->getMessage());

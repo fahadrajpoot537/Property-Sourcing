@@ -32,10 +32,14 @@ class AuthController extends Controller
 
             if (Auth::attempt(array_merge($credentials, ['status' => 1]), $remember)) {
                 $request->session()->regenerate();
+                $user = Auth::user();
 
-                if (in_array(Auth::user()->role, ['admin', 'agent'])) {
-                    return redirect()->intended('admin/dashboard');
+                if (in_array($user->role, ['admin', 'agent'])) {
+                    // Force agents and admins to the correct dashboard
+                    return redirect()->route('admin.dashboard');
                 }
+
+                // For investors, go to their intended page or default dashboard
                 return redirect()->intended('dashboard');
             }
         }

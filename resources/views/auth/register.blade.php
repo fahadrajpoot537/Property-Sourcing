@@ -198,18 +198,20 @@
                                             class="form-label small fw-600 text-uppercase tracking-wider">Password</label>
                                         <div class="input-group-modern">
                                             <i class="bi bi-lock icon"></i>
-                                            <input type="password" name="password" class="form-control"
+                                            <input type="password" name="password" id="password" class="form-control"
                                                 placeholder="••••••••" required>
+                                            <i class="bi bi-eye-slash toggle-password" data-target="password"></i>
                                         </div>
                                     </div>
-
+ 
                                     <div class="col-md-6 mb-4">
                                         <label class="form-label small fw-600 text-uppercase tracking-wider">Confirm
                                             Password</label>
                                         <div class="input-group-modern">
                                             <i class="bi bi-lock-fill icon"></i>
-                                            <input type="password" name="password_confirmation" class="form-control"
+                                            <input type="password" name="password_confirmation" id="password_confirmation" class="form-control"
                                                 placeholder="••••••••" required>
+                                            <i class="bi bi-eye-slash toggle-password" data-target="password_confirmation"></i>
                                         </div>
                                     </div>
                                 </div>
@@ -265,6 +267,23 @@
                     document.getElementById("longitude").value = place.geometry.location.lng();
                 }
             });
+ 
+            // Password Toggle Logic
+            document.querySelectorAll('.toggle-password').forEach(button => {
+                button.addEventListener('click', function() {
+                    const targetId = this.getAttribute('data-target');
+                    const input = document.getElementById(targetId);
+                    if (input.type === 'password') {
+                        input.type = 'text';
+                        this.classList.remove('bi-eye-slash');
+                        this.classList.add('bi-eye');
+                    } else {
+                        input.type = 'password';
+                        this.classList.remove('bi-eye');
+                        this.classList.add('bi-eye-slash');
+                    }
+                });
+            });
         });
     </script>
 
@@ -309,6 +328,7 @@
         .input-group-modern .form-control,
         .input-group-modern .form-select {
             padding-left: 45px;
+            padding-right: 45px;
             height: 50px;
             border-radius: 10px;
             border: 1px solid #e9ecef;
@@ -316,11 +336,24 @@
             font-size: 0.95rem;
             transition: all 0.3s ease;
         }
-
+ 
+        .input-group-modern .toggle-password {
+            position: absolute;
+            right: 15px;
+            color: #adb5bd;
+            cursor: pointer;
+            z-index: 5;
+            transition: color 0.3s ease;
+        }
+ 
+        .input-group-modern .toggle-password:hover {
+            color: #F95CA8;
+        }
+ 
         .input-group-modern .form-control:focus,
         .input-group-modern .form-select:focus {
             background-color: #fff;
-            border-color: var(--primary-pink);
+            border-color: #F95CA8;
             box-shadow: 0 0 0 4px rgba(249, 92, 168, 0.1);
         }
 
