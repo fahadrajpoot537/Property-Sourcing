@@ -33,7 +33,7 @@
             <div class="stats-card blue">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <p class="text-muted mb-1 small">Total Investors</p>
+                        <p class="text-muted mb-1 small">Total Users</p>
                         <h3 class="mb-0">{{ \App\Models\User::count() }}</h3>
                     </div>
                     <div class="icon">
@@ -59,7 +59,7 @@
             <div class="stats-card success">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <p class="text-muted mb-1 small">Approved Investors</p>
+                        <p class="text-muted mb-1 small">Approved Users</p>
                         <h3 class="mb-0">{{ \App\Models\User::where('status', 1)->count() }}</h3>
                     </div>
                     <div class="icon">

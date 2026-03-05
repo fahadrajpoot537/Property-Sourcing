@@ -428,7 +428,8 @@
                             <select name="property_type_id" id="property-type-select" class="admin-input" required>
                                 @foreach($propertyTypes as $type)
                                     <option value="{{ $type->id }}" {{ old('property_type_id') == $type->id ? 'selected' : '' }}>
-                                        {{ $type->name }}</option>
+                                        {{ $type->name }}
+                                    </option>
                                 @endforeach
                             </select>
                         </div>
@@ -438,7 +439,8 @@
                                 <option value="">Select Type</option>
                                 @foreach($unitTypes as $unit)
                                     <option value="{{ $unit->id }}" data-parent="{{ $unit->property_type_id }}">
-                                        {{ $unit->name }}</option>
+                                        {{ $unit->name }}
+                                    </option>
                                 @endforeach
                             </select>
                         </div>

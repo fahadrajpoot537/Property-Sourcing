@@ -1,39 +1,190 @@
 @extends('layouts.admin')
 
-@section('title', 'Edit Available Property')
+@section('title', 'Edit Property Deal')
 
-@push('css')
+@push('styles')
     <style>
-        .ck-editor__editable {
-            min-height: 300px;
+        :root {
+            --wizard-accent: var(--primary-pink);
+            --wizard-primary: var(--primary-blue);
         }
 
-        .form-label {
-            color: #333;
+        /* Wizard Header & Navigation */
+        .wizard-header {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            border-bottom: 3px solid var(--wizard-accent);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+
+        .step-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 600px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .step-nav::after {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #e3e6f0;
+            z-index: 1;
+        }
+
+        .step-anchor {
+            position: relative;
+            z-index: 2;
+            background: white;
+            padding: 0 10px;
+            text-align: center;
+            flex: 1;
+            cursor: pointer;
+        }
+
+        .step-icon {
+            width: 42px;
+            height: 42px;
+            background: white;
+            border: 2px solid #e3e6f0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            font-weight: 700;
+            color: #b7b9cc;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .step-anchor.active .step-icon {
+            border-color: var(--wizard-accent);
+            color: var(--wizard-accent);
+            transform: scale(1.1);
+            box-shadow: 0 0 0 6px rgba(249, 92, 168, 0.1);
+        }
+
+        .step-anchor.completed .step-icon {
+            background: var(--wizard-accent);
+            border-color: var(--wizard-accent);
+            color: white;
+        }
+
+        .step-text {
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #b7b9cc;
+        }
+
+        .step-anchor.active .step-text {
+            color: var(--wizard-primary);
+        }
+
+        /* Step Visibility */
+        .wizard-step {
+            display: none;
+            animation: slideUp 0.4s ease-out;
+        }
+
+        .wizard-step.active {
+            display: block;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Form Elements */
+        .admin-form-group {
+            margin-bottom: 25px;
+        }
+
+        .admin-label {
+            display: block;
+            font-weight: 700;
+            color: var(--primary-blue);
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .admin-input {
+            width: 100%;
+            padding: 14px 20px;
+            border: 1px solid #e3e6f0;
+            border-radius: 10px;
+            background-color: #f8f9fc;
+            transition: all 0.3s;
+            color: #4e5e7a;
+            font-weight: 500;
+        }
+
+        .admin-input:focus {
+            background-color: #fff;
+            border-color: var(--primary-pink);
+            outline: none;
+            box-shadow: 0 0 0 0.2rem rgba(249, 92, 168, 0.1);
+        }
+
+        .admin-input:read-only {
+            background-color: #e9ecef;
+            cursor: not-allowed;
+        }
+
+        /* Sections */
+        .form-section-title {
+            color: var(--primary-pink);
+            font-weight: 800;
             font-size: 0.9rem;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1.5px dashed #e3e6f0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
-        .card-header {
-            border-bottom: 1px solid rgba(0, 0, 0, .05);
+        /* Calculation Badge */
+        .calc-badge {
+            background: rgba(30, 64, 114, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 10px;
         }
 
-        .text-blue {
-            color: #0d6efd;
-        }
-
-        .upload-container {
+        /* Media Upload */
+        .upload-placeholder {
+            border: 2px dashed #e3e6f0;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            background: #f8f9fc;
             cursor: pointer;
             transition: all 0.3s;
         }
 
-        .upload-container:hover {
-            background-color: #f1f1f1 !important;
-            border-color: #0d6efd !important;
-        }
-
-        .custom-checkbox .form-check-input:checked {
-            background-color: #0d6efd;
-            border-color: #0d6efd;
+        .upload-placeholder:hover {
+            border-color: var(--primary-pink);
+            background: white;
         }
 
         .preview-container {
@@ -51,885 +202,766 @@
             border: 1px solid #e3e6f0;
         }
 
-        .preview-item img, .preview-item video {
+        .preview-item img,
+        .preview-item video {
             width: 100%;
             height: 100%;
             object-fit: cover;
+        }
+
+        .video-preview-item {
+            aspect-ratio: 16/9;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        /* Wizard Footer */
+        .wizard-footer {
+            margin-top: 30px;
+            padding: 25px 0;
+            border-top: 1px solid #e3e6f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .price-badge-premium {
+            background: var(--primary-blue);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .price-badge-premium div span {
+            display: block;
+            text-transform: uppercase;
+            font-size: 0.65rem;
+            font-weight: 800;
+            opacity: 0.7;
+            letter-spacing: 0.5px;
+        }
+
+        .price-badge-premium h4 {
+            margin: 0;
+            font-weight: 800;
+            color: #4CD7F6;
+        }
+
+        .ck-editor__editable {
+            min-height: 250px;
+        }
+
+        .feature-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .feature-chip {
+            position: relative;
+        }
+
+        .feature-chip input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+            height: 0;
+            width: 0;
+        }
+
+        .feature-chip label {
+            display: block;
+            padding: 8px 16px;
+            background: #f8f9fc;
+            border: 1px solid #e3e6f0;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            color: #4e5e7a;
+            transition: all 0.2s;
+        }
+
+        .feature-chip input:checked+label {
+            background: var(--primary-pink);
+            color: white;
+            border-color: var(--primary-pink);
         }
     </style>
 @endpush
 
 @section('content')
-    <!-- Page Header -->
-    <div class="page-header">
-        <div class="d-flex justify-content-between align-items-center">
-            <div>
-                <h2>Edit Available Property</h2>
-                <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
-                        <li class="breadcrumb-item"><a href="{{ route('admin.available-properties.index') }}">Available
-                                Properties</a></li>
-                        <li class="breadcrumb-item active">Edit</li>
-                    </ol>
-                </nav>
+    <div class="page-header d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2>Edit Property Deal</h2>
+            <p class="text-muted mb-0">Update the details for: <strong>{{ $property->headline }}</strong></p>
+        </div>
+        <a href="{{ route('admin.available-properties.index') }}" class="btn btn-admin-edit">
+            <i class="bi bi-x-lg me-2"></i>Cancel
+        </a>
+    </div>
+
+    <div class="wizard-header">
+        <div class="step-nav">
+            <div class="step-anchor active" onclick="goToStep(1)" id="nav-1">
+                <div class="step-icon">1</div>
+                <div class="step-text">Valuation & Location</div>
+            </div>
+            <div class="step-anchor" onclick="goToStep(2)" id="nav-2">
+                <div class="step-icon">2</div>
+                <div class="step-text">Property Specs</div>
+            </div>
+            <div class="step-anchor" onclick="goToStep(3)" id="nav-3">
+                <div class="step-icon">3</div>
+                <div class="step-text">Media & Description</div>
             </div>
         </div>
     </div>
 
-    <div class="row justify-content-center">
-        <div class="col-lg-12">
+    <form action="{{ route('admin.available-properties.update', $property->id) }}" method="POST"
+        enctype="multipart/form-data" id="multistep-form">
+        @csrf
+        @method('PUT')
+
+        @if ($errors->any())
+            <div class="alert alert-danger ms-5 me-5 mt-4 p-4 rounded-4 border-0 shadow-sm">
+                <h6 class="fw-bold mb-3 text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i> Please fix the
+                    following errors:</h6>
+                <ul class="mb-0 small">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
+        <div class="wizard-step active" id="step-1">
             <div class="content-card">
                 <div class="card-header">
-                    <h5 class="mb-0 fw-bold text-blue">Property Details: {{ $property->headline }}</h5>
+                    <h5><i class="bi bi-tag-fill me-2 text-pink"></i>Valuation & Basic Details</h5>
                 </div>
-                <div class="card-body p-4">
-
-                    @if($errors->any())
-                        <div class="alert alert-danger">
-                            <ul class="mb-0">
-                                @foreach($errors->all() as $error)
-                                    <li>{{ $error }}</li>
+                <div class="card-body p-4 p-lg-5">
+                    <div class="row g-4 mb-5">
+                        <div class="col-md-6 admin-form-group">
+                            <label class="admin-label">Deal Type</label>
+                            <select name="investment_type" id="investment_type" class="admin-input" required>
+                                <option value="bmv_deal" {{ old('investment_type', $property->investment_type) == 'bmv_deal' ? 'selected' : '' }}>Below
+                                    Market Value (BMV)</option>
+                                <option value="refurb_deal" {{ old('investment_type', $property->investment_type) == 'refurb_deal' ? 'selected' : '' }}>
+                                    Refurbishment Project</option>
+                                <option value="rental" {{ old('investment_type', $property->investment_type) == 'rental' ? 'selected' : '' }}>Rental Yield
+                                    / BTL</option>
+                                <option value="hmo" {{ old('investment_type', $property->investment_type) == 'hmo' ? 'selected' : '' }}>HMO</option>
+                                <option value="buy_to_sell" {{ old('investment_type', $property->investment_type) == 'buy_to_sell' ? 'selected' : '' }}>
+                                    Development / Buy to Sell</option>
+                                <option value="serviced_accommodation" {{ old('investment_type', $property->investment_type) == 'serviced_accommodation' ? 'selected' : '' }}>Serviced
+                                    Accommodation (SA)</option>
+                                <option value="r2r" {{ old('investment_type', $property->investment_type) == 'r2r' ? 'selected' : '' }}>Rent to Rent (R2R)
+                                </option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 admin-form-group">
+                            <label class="admin-label">Marketing Purpose</label>
+                            <select name="marketing_purpose_id" class="admin-input" required>
+                                @foreach($marketingPurposes as $purpose)
+                                    <option value="{{ $purpose->id }}" {{ old('marketing_purpose_id', $property->marketing_purpose_id) == $purpose->id ? 'selected' : '' }}>{{ $purpose->name }}
+                                    </option>
                                 @endforeach
-                            </ul>
+                            </select>
                         </div>
-                    @endif
+                        <div class="col-md-8 admin-form-group">
+                            <label class="admin-label">Property Title / Headline</label>
+                            <input type="text" name="headline" class="admin-input"
+                                value="{{ old('headline', $property->headline) }}"
+                                placeholder="e.g. Stunning 3 Bed Semi-Detached" required>
+                        </div>
+                    </div>
 
-                    <form action="{{ route('admin.available-properties.update', $property->id) }}" method="POST"
-                        enctype="multipart/form-data">
-                        @csrf
-                        @method('PUT')
+                    <div class="form-section-title"><i class="bi bi-currency-pound"></i> Pricing & Fees</div>
+                    <div class="row g-4">
+                        <div class="col-md-4 admin-form-group">
+                            <label class="admin-label">Vendor Sale Price (£)</label>
+                            <input type="number" step="1" name="price" id="vendor-price" class="admin-input"
+                                value="{{ old('price', $property->price) }}" placeholder="0" required>
+                        </div>
+                        <div class="col-md-4 admin-form-group">
+                            <label class="admin-label">PSG Sourcing Fee (£)</label>
+                            <input type="text" id="psg-fees-display" class="admin-input" readonly
+                                placeholder="Auto-calculated">
+                        </div>
+                        <div class="col-md-4 admin-form-group">
+                            <label class="admin-label">Portal Sale Price (£)</label>
+                            <input type="text" id="portal-price-display" class="admin-input" readonly
+                                placeholder="Auto-calculated (B3+B4)">
+                        </div>
+                    </div>
 
-                        <div class="row">
-                            <!-- Left Column: Property Details -->
-                            <div class="col-lg-8">
-                                <div class="card shadow-sm mb-4 border-0">
-                                    <div class="card-header bg-white py-3">
-                                        <h5 class="mb-0 fw-bold text-blue"><i class="fas fa-info-circle me-2"></i>Basic
-                                            Information</h5>
-                                    </div>
-                                    <div class="card-body p-4">
-                                        <div class="mb-4">
-                                            <label class="form-label fw-bold">Property Headline</label>
-                                            <input type="text" name="headline" class="form-control form-control-lg"
-                                                placeholder="e.g. Luxury 5 Bedroom Villa in London"
-                                                value="{{ old('headline', $property->headline) }}" required>
-                                        </div>
-
-                                        <div class="mb-4">
-                                            <label class="form-label fw-bold">Property Location (UK Only)</label>
-                                            <div class="input-group">
-                                                <span class="input-group-text bg-light border-end-0"><i
-                                                        class="fas fa-map-marker-alt text-danger"></i></span>
-                                                <input type="text" id="location-input" name="location"
-                                                    class="form-control border-start-0 ps-0"
-                                                    placeholder="Search UK address..."
-                                                    value="{{ old('location', $property->location) }}" required>
-                                            </div>
-                                            <input type="hidden" id="latitude" name="latitude"
-                                                value="{{ $property->latitude }}">
-                                            <input type="hidden" id="longitude" name="longitude"
-                                                value="{{ $property->longitude }}">
-                                        </div>
-
-                                        <div class="row mb-4">
-                                            <div class="col-md-6">
-                                                <label class="form-label fw-bold">Marketing Purpose</label>
-                                                <select name="marketing_purpose_id" class="form-select" required>
-                                                    <option value="">Select Purpose</option>
-                                                    @foreach($marketingPurposes as $purpose)
-                                                        <option value="{{ $purpose->id }}" {{ (old('marketing_purpose_id', $property->marketing_purpose_id) == $purpose->id) ? 'selected' : '' }}>
-                                                            {{ $purpose->name }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <label class="form-label fw-bold">Price/Rent (£)</label>
-                                                <div class="input-group">
-                                                    <span class="input-group-text">£</span>
-                                                    <input type="number" step="0.01" name="price" class="form-control"
-                                                        placeholder="0.00" value="{{ old('price', $property->price) }}"
-                                                        required>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="mb-0">
-                                            <label class="form-label fw-bold text-blue"><i
-                                                    class="fas fa-align-left me-2"></i>Full Description</label>
-                                            <textarea name="full_description" id="editor" class="form-control"
-                                                rows="10">{{ old('full_description', $property->full_description) }}</textarea>
-                                        </div>
-                                    </div>
+                    <div class="form-section-title mt-4"><i class="bi bi-graph-up-arrow"></i> Market Analysis</div>
+                    <div class="row g-4">
+                        <div class="col-md-4 admin-form-group">
+                            <label class="admin-label">Min Market Value (£)</label>
+                            <input type="number" step="1" name="market_value_min" id="mv-min" class="admin-input"
+                                value="{{ old('market_value_min', $property->market_value_min) }}" placeholder="0">
+                        </div>
+                        <div class="col-md-4 admin-form-group">
+                            <label class="admin-label">Max Market Value (£)</label>
+                            <input type="number" step="1" name="market_value_max" id="mv-max" class="admin-input"
+                                value="{{ old('market_value_max', $property->market_value_max) }}" placeholder="0">
+                        </div>
+                        <div class="col-md-4 admin-form-group">
+                            <label class="admin-label">Average Market Value (£)</label>
+                            <input type="text" id="mv-avg-display" class="admin-input" readonly
+                                placeholder="Auto (avg check)">
+                        </div>
+                        <div class="col-12">
+                            <div class="calc-badge d-flex align-items-center justify-content-between">
+                                <div>
+                                    <span class="admin-label mb-0" style="font-size: 0.7rem;">Calculated Investor
+                                        Discount</span>
+                                    <h3 class="mb-0 fw-black text-pink" id="discount-display">0%</h3>
                                 </div>
-
-                                <div class="card shadow-sm mb-4 border-0">
-                                    <div class="card-header bg-white py-3">
-                                        <h5 class="mb-0 fw-bold text-blue"><i class="fas fa-tools me-2"></i>Property
-                                            Specifications</h5>
-                                    </div>
-                                    <div class="card-body p-4">
-                                        <div class="row mb-4">
-                                            <div class="col-md-6">
-                                                <label class="form-label fw-bold">Property Type</label>
-                                                <select name="property_type_id" id="property_type_id" class="form-select"
-                                                    required>
-                                                    <option value="">Select Type</option>
-                                                    @foreach($propertyTypes as $type)
-                                                        <option value="{{ $type->id }}"
-                                                            data-name="{{ strtolower($type->name) }}" {{ (old('property_type_id', $property->property_type_id) == $type->id) ? 'selected' : '' }}>
-                                                            {{ $type->name }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <label class="form-label fw-bold">Unit Type</label>
-                                                <select name="unit_type_id" id="unit_type_id" class="form-select">
-                                                    <option value="">Choose Category (Optional)</option>
-                                                    @foreach($unitTypes as $type)
-                                                        <option value="{{ $type->id }}"
-                                                            data-property-type="{{ $type->property_type_id }}" {{ (old('unit_type_id', $property->unit_type_id) == $type->id) ? 'selected' : '' }}>
-                                                            {{ $type->name }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                            </div>
-                                        </div>
-
-                                        <div class="row align-items-end">
-                                            <div class="col-md-4">
-                                                <label class="form-label fw-bold">Area (Sq Ft)</label>
-                                                <div class="input-group">
-                                                    <input type="number" name="area_sq_ft" class="form-control"
-                                                        placeholder="e.g. 1500"
-                                                        value="{{ old('area_sq_ft', $property->area_sq_ft) }}">
-                                                    <span class="input-group-text">sq ft</span>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-8">
-                                                <div class="row" id="bed-bath-section">
-                                                    <div class="col-md-6">
-                                                        <label class="form-label fw-bold">Bedrooms</label>
-                                                        <select name="bedrooms" class="form-select">
-                                                            <option value="">Select Bedrooms</option>
-                                                            <option value="Studio" {{ old('bedrooms', $property->bedrooms) == 'Studio' ? 'selected' : '' }}>Studio
-                                                            </option>
-                                                            @for($i = 1; $i <= 9; $i++)
-                                                                <option value="{{ $i }}" {{ old('bedrooms', $property->bedrooms) == $i ? 'selected' : '' }}>{{ $i }}
-                                                                </option>
-                                                            @endfor
-                                                            <option value="10+" {{ old('bedrooms', $property->bedrooms) == '10+' ? 'selected' : '' }}>10+
-                                                            </option>
-                                                        </select>
-                                                    </div>
-                                                    <div class="col-md-6">
-                                                        <label class="form-label fw-bold">Bathrooms</label>
-                                                        <select name="bathrooms" class="form-select">
-                                                            <option value="">Select Bathrooms</option>
-                                                            @for($i = 1; $i <= 9; $i++)
-                                                                <option value="{{ $i }}" {{ old('bathrooms', $property->bathrooms) == $i ? 'selected' : '' }}>{{ $i }}
-                                                                </option>
-                                                            @endfor
-                                                            <option value="10+" {{ old('bathrooms', $property->bathrooms) == '10+' ? 'selected' : '' }}>10+
-                                                            </option>
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Financial Details -->
-                                <div class="card shadow-sm mb-4 border-0">
-                                    <div class="card-header bg-white py-3">
-                                        <h5 class="mb-0 fw-bold text-blue"><i class="fas fa-pound-sign me-2"></i>Financial
-                                            Details</h5>
-                                    </div>
-                                    <div class="card-body p-4">
-                                        <div class="row mb-4">
-                                            <div class="col-md-6">
-                                                <label class="form-label fw-bold">Current Value</label>
-                                                <div class="input-group">
-                                                    <span class="input-group-text">£</span>
-                                                    <input type="number" step="0.01" name="current_value"
-                                                        class="form-control" placeholder="0.00"
-                                                        value="{{ old('current_value', $property->current_value) }}">
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <label class="form-label fw-bold">Purchase Date</label>
-                                                <input type="date" name="purchase_date" class="form-control"
-                                                    value="{{ old('purchase_date', $property->purchase_date ? $property->purchase_date->format('Y-m-d') : '') }}">
-                                            </div>
-                                        </div>
-
-                                        <div class="row mb-4">
-                                            <div class="col-md-6">
-                                                <label class="form-label fw-bold">Is it a cash buy?</label>
-                                                <select name="is_cash_buy" class="form-select">
-                                                    <option value="0" {{ old('is_cash_buy', $property->is_cash_buy) == '0' ? 'selected' : '' }}>No</option>
-                                                    <option value="1" {{ old('is_cash_buy', $property->is_cash_buy) == '1' ? 'selected' : '' }}>Yes</option>
-                                                </select>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <label class="form-label fw-bold">Completion Deadline</label>
-                                                <input type="date" name="completion_deadline" class="form-control"
-                                                    value="{{ old('completion_deadline', $property->completion_deadline ? \Carbon\Carbon::parse($property->completion_deadline)->format('Y-m-d') : '') }}">
-                                            </div>
-                                        </div>
-
-                                        <div class="mb-4">
-                                            <label class="form-label fw-bold">Financing Type</label>
-                                            <select name="financing_type" id="financing_type" class="form-select mb-3">
-                                                <option value="cash" {{ old('financing_type', $property->financing_type) == 'cash' ? 'selected' : '' }}>Cash Purchase
-                                                </option>
-                                                <option value="mortgage" {{ old('financing_type', $property->financing_type) == 'mortgage' ? 'selected' : '' }}>Mortgage
-                                                </option>
-                                            </select>
-
-                                            <!-- Mortgage Details -->
-                                            <div id="mortgage_details" style="display: none;">
-                                                <div class="row g-3 p-3 bg-light rounded border">
-                                                    <div class="col-md-6">
-                                                        <label class="form-label small fw-bold">Loan Amount</label>
-                                                        <div class="input-group input-group-sm">
-                                                            <span class="input-group-text">£</span>
-                                                            <input type="number" step="0.01" name="loan_amount"
-                                                                class="form-control"
-                                                                value="{{ old('loan_amount', $property->loan_amount) }}">
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-md-6">
-                                                        <label class="form-label small fw-bold">Interest Rate</label>
-                                                        <div class="input-group input-group-sm">
-                                                            <input type="number" step="0.01" name="interest_rate"
-                                                                class="form-control"
-                                                                value="{{ old('interest_rate', $property->interest_rate) }}">
-                                                            <span class="input-group-text">%</span>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-md-6">
-                                                        <label class="form-label small fw-bold">Lender Name</label>
-                                                        <input type="text" name="lender_name"
-                                                            class="form-control form-control-sm"
-                                                            value="{{ old('lender_name', $property->lender_name) }}">
-                                                    </div>
-                                                    <div class="col-md-6">
-                                                        <label class="form-label small fw-bold">Monthly Payment
-                                                            (Override)</label>
-                                                        <div class="input-group input-group-sm">
-                                                            <span class="input-group-text">£</span>
-                                                            <input type="number" step="0.01" name="monthly_payment"
-                                                                class="form-control"
-                                                                value="{{ old('monthly_payment', $property->monthly_payment) }}">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Costs Section -->
-                                        <div class="mb-2">
-                                            <label class="form-label fw-bold mb-3">Associated Costs</label>
-                                            <div id="costs_container">
-                                                @foreach($property->costs as $index => $cost)
-                                                    <div class="row g-2 mb-2 align-items-center cost-row">
-                                                        <div class="col-7">
-                                                            <input type="text" name="costs[{{ $index }}][name]"
-                                                                class="form-control form-control-sm" placeholder="Cost Name"
-                                                                value="{{ $cost->name }}">
-                                                        </div>
-                                                        <div class="col-4">
-                                                            <div class="input-group input-group-sm">
-                                                                <span class="input-group-text">£</span>
-                                                                <input type="number" step="0.01"
-                                                                    name="costs[{{ $index }}][amount]" class="form-control"
-                                                                    placeholder="0.00" value="{{ $cost->amount }}">
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-1 text-end">
-                                                            <button type="button" class="btn btn-sm text-danger"
-                                                                onclick="this.closest('.cost-row').remove()"><i
-                                                                    class="fas fa-trash"></i></button>
-                                                        </div>
-                                                    </div>
-                                                @endforeach
-                                            </div>
-                                            <button type="button" class="btn btn-outline-primary btn-sm mt-2"
-                                                onclick="addCostRow()">
-                                                <i class="fas fa-plus me-1"></i> Add Cost
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Investment Strategy -->
-                                <div class="card shadow-sm mb-4 border-0">
-                                    <div class="card-header bg-white py-3">
-                                        <h5 class="mb-0 fw-bold text-blue"><i class="fas fa-chart-line me-2"></i>Investment
-                                            Strategy</h5>
-                                    </div>
-                                    <div class="card-body p-4">
-                                        <div class="mb-4">
-                                            <label class="form-label fw-bold">Investment Type</label>
-                                            <select name="investment_type" id="investment_type" class="form-select mb-3">
-                                                <option value="">Select Strategy</option>
-                                                <option value="buy_to_sell" {{ old('investment_type', $property->investment_type) == 'buy_to_sell' ? 'selected' : '' }}>Buy to
-                                                    Sell</option>
-                                                <option value="rental" {{ old('investment_type', $property->investment_type) == 'rental' ? 'selected' : '' }}>Rental
-                                                    Property</option>
-                                                <option value="bmv_deal" {{ old('investment_type', $property->investment_type) == 'bmv_deal' ? 'selected' : '' }}>BMV Deal
-                                                </option>
-                                                <option value="refurb_deal" {{ old('investment_type', $property->investment_type) == 'refurb_deal' ? 'selected' : '' }}>Refurb
-                                                    Deal</option>
-                                                <option value="hmo" {{ old('investment_type', $property->investment_type) == 'hmo' ? 'selected' : '' }}>HMO</option>
-                                                <option value="btl" {{ old('investment_type', $property->investment_type) == 'btl' ? 'selected' : '' }}>BTL (Buy to Let)
-                                                </option>
-                                                <option value="brr" {{ old('investment_type', $property->investment_type) == 'brr' ? 'selected' : '' }}>BRR (Buy Refurb
-                                                    Refinance)</option>
-                                                <option value="r2r" {{ old('investment_type', $property->investment_type) == 'r2r' ? 'selected' : '' }}>R2R (Rent to
-                                                    Rent)</option>
-                                                <option value="serviced_accommodation" {{ old('investment_type', $property->investment_type) == 'serviced_accommodation' ? 'selected' : '' }}>Serviced Accommodation (SA)</option>
-                                            </select>
-
-                                            <div id="buy_to_sell_details" style="display: none;">
-                                                <div class="row g-3 p-3 bg-light rounded border">
-                                                    <div class="col-md-6">
-                                                        <label class="form-label small fw-bold">Sale Price</label>
-                                                        <div class="input-group input-group-sm">
-                                                            <span class="input-group-text">£</span>
-                                                            <input type="number" step="0.01" name="sale_price"
-                                                                class="form-control"
-                                                                value="{{ old('sale_price', $property->sale_price) }}">
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-md-6">
-                                                        <label class="form-label small fw-bold">Sale Date</label>
-                                                        <input type="date" name="sale_date"
-                                                            class="form-control form-control-sm"
-                                                            value="{{ old('sale_date', $property->sale_date ? $property->sale_date->format('Y-m-d') : '') }}">
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div id="rental_details" style="display: none;">
-                                                <div class="row g-3 p-3 bg-light rounded border">
-                                                    <div class="col-md-6">
-                                                        <label class="form-label small fw-bold">Monthly Rent</label>
-                                                        <div class="input-group input-group-sm">
-                                                            <span class="input-group-text">£</span>
-                                                            <input type="number" step="0.01" name="monthly_rent"
-                                                                class="form-control"
-                                                                value="{{ old('monthly_rent', $property->monthly_rent) }}">
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-md-6 d-flex align-items-center">
-                                                        <div class="form-check mt-4">
-                                                            <input class="form-check-input" type="checkbox"
-                                                                name="is_currently_rented" id="is_currently_rented" {{ old('is_currently_rented', $property->is_currently_rented) ? 'checked' : '' }}>
-                                                            <label class="form-check-label small fw-bold"
-                                                                for="is_currently_rented">
-                                                                Currently Rented?
-                                                            </label>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="mb-0">
-                                            <label class="form-label fw-bold">Tenure Details</label>
-                                            <select name="tenure_type" id="tenure_type" class="form-select mb-3">
-                                                <option value="">Select Tenure</option>
-                                                <option value="freehold" {{ old('tenure_type', $property->tenure_type) == 'freehold' ? 'selected' : '' }}>Freehold
-                                                </option>
-                                                <option value="leasehold" {{ old('tenure_type', $property->tenure_type) == 'leasehold' ? 'selected' : '' }}>Leasehold
-                                                </option>
-                                            </select>
-
-                                            <div id="leasehold_details" style="display: none;">
-                                                <div class="row g-3 p-3 bg-light rounded border">
-                                                    <div class="col-md-6">
-                                                        <label class="form-label small fw-bold">Annual Service
-                                                            Charge</label>
-                                                        <div class="input-group input-group-sm">
-                                                            <span class="input-group-text">£</span>
-                                                            <input type="number" step="0.01" name="service_charge"
-                                                                class="form-control"
-                                                                value="{{ old('service_charge', $property->service_charge) }}">
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-md-6">
-                                                        <label class="form-label small fw-bold">Annual Ground Rent</label>
-                                                        <div class="input-group input-group-sm">
-                                                            <span class="input-group-text">£</span>
-                                                            <input type="number" step="0.01" name="ground_rent"
-                                                                class="form-control"
-                                                                value="{{ old('ground_rent', $property->ground_rent) }}">
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-12">
-                                                        <label class="form-label small fw-bold">Years Remaining on
-                                                            Lease</label>
-                                                        <input type="number" name="lease_years_remaining"
-                                                            class="form-control form-control-sm" placeholder="e.g. 125"
-                                                            value="{{ old('lease_years_remaining', $property->lease_years_remaining) }}">
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Tenancy & Compliance -->
-                                <div class="card shadow-sm mb-4 border-0">
-                                    <div class="card-header bg-white py-3">
-                                        <h5 class="mb-0 fw-bold text-blue"><i class="fas fa-file-contract me-2"></i>Tenancy
-                                            & Compliance</h5>
-                                    </div>
-                                    <div class="card-body p-4">
-                                        <div class="mb-4">
-                                            <label class="form-label fw-bold mb-3">Tenants (Optional)</label>
-                                            <div id="tenants_container">
-                                                @foreach($property->tenants as $index => $tenant)
-                                                    <div
-                                                        class="row g-2 mb-3 p-2 border rounded bg-white tenant-row position-relative">
-                                                        <button type="button"
-                                                            class="btn btn-sm btn-link text-danger position-absolute top-0 end-0 text-decoration-none"
-                                                            onclick="this.closest('.tenant-row').remove()"
-                                                            style="z-index:10;">&times;</button>
-                                                        <div class="col-md-6">
-                                                            <label class="form-label small mb-1">Full Name</label>
-                                                            <input type="text" name="tenants[{{ $index }}][name]"
-                                                                class="form-control form-control-sm" value="{{ $tenant->name }}"
-                                                                required>
-                                                        </div>
-                                                        <div class="col-md-6">
-                                                            <label class="form-label small mb-1">Phone</label>
-                                                            <input type="text" name="tenants[{{ $index }}][phone]"
-                                                                class="form-control form-control-sm"
-                                                                value="{{ $tenant->phone }}">
-                                                        </div>
-                                                        <div class="col-md-8">
-                                                            <label class="form-label small mb-1">Email</label>
-                                                            <input type="email" name="tenants[{{ $index }}][email]"
-                                                                class="form-control form-control-sm"
-                                                                value="{{ $tenant->email }}">
-                                                        </div>
-                                                        <div class="col-md-4 d-flex align-items-end">
-                                                            <div class="form-check mb-1">
-                                                                <input class="form-check-input" type="checkbox"
-                                                                    name="tenants[{{ $index }}][is_primary]"
-                                                                    id="primary_{{ $index }}" {{ $tenant->is_primary ? 'checked' : '' }}>
-                                                                <label class="form-check-label small"
-                                                                    for="primary_{{ $index }}">Primary Contact</label>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                @endforeach
-                                            </div>
-                                            <button type="button" class="btn btn-outline-primary btn-sm mt-2"
-                                                onclick="addTenantRow()">
-                                                <i class="fas fa-user-plus me-1"></i> Add Tenant
-                                            </button>
-                                        </div>
-
-                                        <div class="mb-0">
-                                            <label class="form-label fw-bold mb-3">Compliance Certificates</label>
-                                            <div class="row g-3 p-3 bg-light rounded border">
-                                                <div class="col-12 fw-bold text-secondary small text-uppercase">Gas Safety
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <label class="form-label small">Issue Date</label>
-                                                    <input type="date" name="gas_safety_issue_date"
-                                                        class="form-control form-control-sm"
-                                                        value="{{ old('gas_safety_issue_date', $property->gas_safety_issue_date ? $property->gas_safety_issue_date->format('Y-m-d') : '') }}">
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <label class="form-label small">Expiry Date</label>
-                                                    <input type="date" name="gas_safety_expiry_date"
-                                                        class="form-control form-control-sm"
-                                                        value="{{ old('gas_safety_expiry_date', $property->gas_safety_expiry_date ? $property->gas_safety_expiry_date->format('Y-m-d') : '') }}">
-                                                </div>
-
-                                                <div class="col-12 fw-bold text-secondary small text-uppercase mt-2">
-                                                    Electrical Safety (EICR)</div>
-                                                <div class="col-md-6">
-                                                    <label class="form-label small">Issue Date</label>
-                                                    <input type="date" name="electrical_issue_date"
-                                                        class="form-control form-control-sm"
-                                                        value="{{ old('electrical_issue_date', $property->electrical_issue_date ? $property->electrical_issue_date->format('Y-m-d') : '') }}">
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <label class="form-label small">Expiry Date</label>
-                                                    <input type="date" name="electrical_expiry_date"
-                                                        class="form-control form-control-sm"
-                                                        value="{{ old('electrical_expiry_date', $property->electrical_expiry_date ? $property->electrical_expiry_date->format('Y-m-d') : '') }}">
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Right Column: Media & Features -->
-                            <div class="col-lg-4">
-                                <div class="card shadow-sm mb-4 border-0">
-                                    <div class="card-header bg-white py-3">
-                                        <h5 class="mb-0 fw-bold text-blue"><i class="fas fa-images me-2"></i>Media & Gallery
-                                        </h5>
-                                    </div>
-                                    <div class="card-body p-4">
-                                        <div class="mb-4">
-                                            <label class="form-label fw-bold text-dark">Thumbnail Image</label>
-                                            @if($property->thumbnail)
-                                                <div class="mb-2">
-                                                    <img src="{{ Storage::url($property->thumbnail) }}" alt="Thumbnail"
-                                                        class="img-fluid rounded border shadow-sm" style="max-height: 150px;">
-                                                </div>
-                                            @endif
-                                            <div class="upload-container text-center border p-3 rounded bg-light">
-                                                <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
-                                                <input type="file" id="thumb-input" name="thumbnail" class="form-control" accept="image/*">
-                                                <div id="thumb-preview" class="preview-container"></div>
-                                            </div>
-                                        </div>
-
-                                        <div class="mb-4">
-                                            <label class="form-label fw-bold text-dark">Gallery Images</label>
-                                            @if($property->gallery_images)
-                                                <div class="d-flex flex-wrap gap-2 mb-2">
-                                                    @foreach($property->gallery_images as $image)
-                                                        <img src="{{ Storage::url($image) }}" alt="Gallery" class="img-thumbnail"
-                                                            style="width: 60px; height: 60px; object-fit: cover;">
-                                                    @endforeach
-                                                </div>
-                                            @endif
-                                            <input type="file" id="gallery-input" name="gallery_images[]" class="form-control" accept="image/*"
-                                                multiple>
-                                            <div id="gallery-preview" class="preview-container"></div>
-                                            <small class="text-muted">Will replace current gallery</small>
-                                        </div>
-
-                                        <div class="mb-0">
-                                            <label class="form-label fw-bold text-dark">Property Video</label>
-                                            @if($property->video_url)
-                                                <div class="mb-2">
-                                                    <video width="100%" height="auto" controls class="rounded border shadow-sm">
-                                                        <source src="{{ Storage::url($property->video_url) }}" type="video/mp4">
-                                                        Your browser does not support the video tag.
-                                                    </video>
-                                                    <p class="small text-muted mt-1">Current Video</p>
-                                                </div>
-                                            @endif
-                                            <input type="file" id="video-input" name="video" class="form-control" accept="video/*">
-                                            <div id="video-preview" class="mt-3" style="display: none;">
-                                                <video controls style="max-width: 100%; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"></video>
-                                            </div>
-                                            <small class="text-muted">Upload property walkthrough (MP4, Max 20MB)</small>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="card shadow-sm mb-4 border-0">
-                                    <div class="card-header bg-white py-3">
-                                        <h5 class="mb-0 fw-bold text-blue"><i class="fas fa-list-ul me-2"></i>Features</h5>
-                                    </div>
-                                    <div class="card-body p-4">
-                                        <div class="row">
-                                            @foreach($features as $feature)
-                                                <div class="col-6 mb-2">
-                                                    <div class="form-check custom-checkbox">
-                                                        <input class="form-check-input" type="checkbox" name="features[]"
-                                                            value="{{ $feature->id }}" id="feature_{{ $feature->id }}" {{ in_array($feature->id, old('features', $selectedFeatures)) ? 'checked' : '' }}>
-                                                        <label class="form-check-label small" for="feature_{{ $feature->id }}">
-                                                            {{ $feature->name }}
-                                                        </label>
-                                                    </div>
-                                                </div>
-                                            @endforeach
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="card shadow-sm border-0 bg-light border-top border-4 border-primary">
-                                    <div class="card-body p-4 text-center">
-                                        <div class="mb-4 text-start">
-                                            <label class="form-label fw-bold">Listing Status</label>
-                                            <select name="status" class="form-select fw-600 text-dark">
-                                                @if(auth()->user()->role === 'admin')
-                                                    <option value="pending" {{ old('status', $property->status) == 'pending' ? 'selected' : '' }}>Pending</option>
-                                                    <option value="approved" {{ old('status', $property->status) == 'approved' ? 'selected' : '' }}>Approved</option>
-                                                    <option value="disapproved" {{ old('status', $property->status) == 'disapproved' ? 'selected' : '' }}>Disapproved
-                                                    </option>
-                                                    <option value="sold out" {{ old('status', $property->status) == 'sold out' ? 'selected' : '' }}>Sold Out</option>
-                                                @else
-                                                    <option value="pending" {{ old('status', $property->status) == 'pending' ? 'selected' : '' }}>Pending</option>
-                                                    <option value="sold out" {{ old('status', $property->status) == 'sold out' ? 'selected' : '' }}>Sold Out</option>
-                                                    @if(!in_array($property->status, ['pending', 'sold out']))
-                                                        <option value="{{ $property->status }}" selected disabled>
-                                                            {{ ucfirst($property->status) }}
-                                                        </option>
-                                                    @endif
-                                                @endif
-                                            </select>
-                                            <small class="text-muted">Only 'Approved' properties are shown on the
-                                                website.</small>
-                                        </div>
-
-                                        <div class="form-check mb-4 d-inline-block text-start">
-                                            <input class="form-check-input" type="checkbox" name="discount_available"
-                                                id="discountCheck" {{ old('discount_available', $property->discount_available) ? 'checked' : '' }}>
-                                            <label class="form-check-label fw-bold" for="discountCheck">
-                                                Mark as Discounted Property
-                                            </label>
-                                        </div>
-                                        <div class="d-grid gap-2">
-                                            <button type="submit"
-                                                class="btn btn-primary btn-lg fw-bold shadow-sm py-3 mb-2">
-                                                <i class="fas fa-sync-alt me-2"></i>Update Property
-                                            </button>
-                                            <a href="{{ route('admin.available-properties.index') }}"
-                                                class="btn btn-light btn-lg small text-muted border">
-                                                Back to List
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
+                                <i class="bi bi-percent fs-1 text-muted opacity-25"></i>
                             </div>
                         </div>
-                    </form>
+                    </div>
+
+                    <div class="form-section-title mt-5"><i class="bi bi-geo-alt-fill"></i> Property Location</div>
+                    <div class="row g-3">
+                        <div class="col-12 admin-form-group">
+                            <label class="admin-label">Search Address</label>
+                            <input type="text" id="location-input" name="location" class="admin-input"
+                                value="{{ old('location', $property->location) }}"
+                                placeholder="Type here to autocomplete from Google Maps...">
+                            <input type="hidden" id="latitude" name="latitude"
+                                value="{{ old('latitude', $property->latitude) }}">
+                            <input type="hidden" id="longitude" name="longitude"
+                                value="{{ old('longitude', $property->longitude) }}">
+                        </div>
+                        <div class="col-md-3 admin-form-group">
+                            <label class="admin-label">Door Number</label>
+                            <input type="text" name="door_number" class="admin-input"
+                                value="{{ old('door_number', $property->door_number) }}" placeholder="e.g. 52">
+                        </div>
+                        <div class="col-md-4 admin-form-group">
+                            <label class="admin-label">City</label>
+                            <input type="text" name="city" id="city-input" class="admin-input"
+                                value="{{ old('city', $property->city) }}" placeholder="e.g. Manchester">
+                        </div>
+                        <div class="col-md-5 admin-form-group">
+                            <label class="admin-label">Post Code</label>
+                            <input type="text" name="postcode" id="postcode-input" class="admin-input"
+                                value="{{ old('postcode', $property->postcode) }}" placeholder="e.g. M1 1AF">
+                        </div>
+                    </div>
                 </div>
-                @push('scripts')
-                    <!-- CKEditor 5 -->
-                    <script src="https://cdn.ckeditor.com/ckeditor5/40.0.0/classic/ckeditor.js"></script>
-                    <!-- Google Maps Places API -->
-                    <scriptsrc="https:
-                        //maps.googleapis.com/maps/api/js?key=AIzaSyDtagAWzRL7h2Safzk7EwKK0x6v42RlsdI&libraries=places">
-                        </script>
-                        <script>
-                            // Initialize CKEditor
-                            ClassicEditor
-                                .create(document.querySelector('#editor'), {
-                                    toolbar: ['heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', 'blockQuote', 'undo', 'redo'],
-                                })
-                                .catch(error => {
-                                    console.error(error);
-                                });
+            </div>
+        </div>
 
-                            function initAutocomplete() {
-                                const input = document.getElementById("location-input");
-                                const options = {
-                                    componentRestrictions: { country: "gb" },
-                                    fields: ["address_components", "geometry", "icon", "name"],
-                                    strictBounds: false,
-                                };
+        <!-- STEP 2: PROPERTY SPECS -->
+        <div class="wizard-step" id="step-2">
+            <div class="content-card">
+                <div class="card-header">
+                    <h5><i class="bi bi-house-gear-fill me-2 text-pink"></i>Property Hardware & Tenure</h5>
+                </div>
+                <div class="card-body p-4 p-lg-5">
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6 admin-form-group">
+                            <label class="admin-label">Property Category</label>
+                            <select name="property_type_id" id="property-type-select" class="admin-input" required>
+                                @foreach($propertyTypes as $type)
+                                    <option value="{{ $type->id }}" {{ old('property_type_id', $property->property_type_id) == $type->id ? 'selected' : '' }}>
+                                        {{ $type->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-6 admin-form-group">
+                            <label class="admin-label">Property Type (Specific)</label>
+                            <select name="unit_type_id" id="unit-type-select" class="admin-input">
+                                <option value="">Select Type</option>
+                                @foreach($unitTypes as $unit)
+                                    <option value="{{ $unit->id }}" data-parent="{{ $unit->property_type_id }}" {{ old('unit_type_id', $property->unit_type_id) == $unit->id ? 'selected' : '' }}>
+                                        {{ $unit->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
 
-                                const autocomplete = new google.maps.places.Autocomplete(input, options);
+                    <div class="row g-4">
+                        <div class="col-md-4 admin-form-group">
+                            <label class="admin-label">No. of Bedrooms</label>
+                            <select name="bedrooms" class="admin-input">
+                                <option value="Studio" {{ old('bedrooms', $property->bedrooms) == 'Studio' ? 'selected' : '' }}>Studio</option>
+                                @for($i = 1; $i <= 10; $i++)
+                                    <option value="{{$i}}" {{ old('bedrooms', $property->bedrooms) == $i ? 'selected' : '' }}>
+                                {{$i}} Bed</option> @endfor
+                                <option value="11" {{ old('bedrooms', $property->bedrooms) == '11' || old('bedrooms', $property->bedrooms) == '10+' ? 'selected' : '' }}>10+ Bed</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 admin-form-group">
+                            <label class="admin-label">No. of Bathrooms</label>
+                            <select name="bathrooms" class="admin-input">
+                                @for($i = 1; $i <= 5; $i++)
+                                    <option value="{{$i}}" {{ old('bathrooms', $property->bathrooms) == $i ? 'selected' : '' }}>
+                                {{$i}} Bath</option> @endfor
+                                <option value="6" {{ old('bathrooms', $property->bathrooms) == '6' || old('bathrooms', $property->bathrooms) == '5+' ? 'selected' : '' }}>5+ Bath</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 admin-form-group">
+                            <label class="admin-label">Area (Sq Ft)</label>
+                            <input type="number" name="area_sq_ft" class="admin-input"
+                                value="{{ old('area_sq_ft', $property->area_sq_ft) }}" placeholder="Total Area">
+                        </div>
+                    </div>
 
-                                autocomplete.addListener("place_changed", () => {
-                                    const place = autocomplete.getPlace();
+                    <div class="form-section-title mt-4"><i class="bi bi-journal-check"></i> Tenure & Contracts</div>
+                    <div class="row g-4">
+                        <div class="col-md-4 admin-form-group">
+                            <label class="admin-label">Tenure Type</label>
+                            <select name="tenure_type" id="tenure-type" class="admin-input">
+                                <option value="freehold" {{ old('tenure_type', $property->tenure_type) == 'freehold' ? 'selected' : '' }}>Freehold</option>
+                                <option value="leasehold" {{ old('tenure_type', $property->tenure_type) == 'leasehold' ? 'selected' : '' }}>Leasehold</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 admin-form-group" id="lease-years-container"
+                            style="{{ old('tenure_type', $property->tenure_type) == 'leasehold' ? '' : 'display: none;' }}">
+                            <label class="admin-label">Lease Years Remaining</label>
+                            <input type="number" name="lease_years_remaining" class="admin-input"
+                                value="{{ old('lease_years_remaining', $property->lease_years_remaining) }}"
+                                placeholder="e.g. 999">
+                        </div>
+                        <div class="col-md-4 admin-form-group">
+                            <label class="admin-label">Share of Freehold?</label>
+                            <select name="share_of_freehold" class="admin-input">
+                                <option value="no" {{ old('share_of_freehold', $property->share_of_freehold) == 'no' ? 'selected' : '' }}>No</option>
+                                <option value="yes" {{ old('share_of_freehold', $property->share_of_freehold) == 'yes' ? 'selected' : '' }}>Yes</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 admin-form-group">
+                            <label class="admin-label">Assignable Contract?</label>
+                            <select name="assignable_contract" class="admin-input">
+                                <option value="no" {{ old('assignable_contract', $property->assignable_contract) == 'no' ? 'selected' : '' }}>No</option>
+                                <option value="yes" {{ old('assignable_contract', $property->assignable_contract) == 'yes' ? 'selected' : '' }}>Yes</option>
+                            </select>
+                        </div>
+                    </div>
 
-                                    if (!place.geometry || !place.geometry.location) {
-                                        window.alert("No details available for input: '" + place.name + "'");
-                                        return;
-                                    }
+                    <!-- Rental Fields (Hidden by default, shown based on JS) -->
+                    <div id="rental-fields-section"
+                        style="{{ in_array(old('investment_type', $property->investment_type), ['rental', 'hmo', 'r2r']) ? '' : 'display: none;' }}">
+                        <div class="form-section-title mt-4 text-success"><i class="bi bi-wallet2"></i> Rental Information
+                        </div>
+                        <div class="row g-4">
+                            <div class="col-md-4 admin-form-group">
+                                <label class="admin-label text-success">Monthly Rent (£)</label>
+                                <input type="number" name="monthly_rent" class="admin-input"
+                                    value="{{ old('monthly_rent', $property->monthly_rent) }}" placeholder="0">
+                            </div>
+                            <div class="col-md-4 admin-form-group d-flex align-items-end">
+                                <div
+                                    class="form-check form-switch admin-input d-flex align-items-center justify-content-between py-3">
+                                    <label class="admin-label mb-0 text-success" for="is_currently_rented">Currently
+                                        Rented?</label>
+                                    <input class="form-check-input" type="checkbox" name="is_currently_rented"
+                                        id="is_currently_rented" value="1" {{ old('is_currently_rented', $property->is_currently_rented) ? 'checked' : '' }}>
+                                </div>
+                            </div>
+                            <div class="col-md-4 admin-form-group" id="yearly-rent-container"
+                                style="{{ (in_array(old('investment_type', $property->investment_type), ['rental', 'hmo', 'r2r']) && old('is_currently_rented', $property->is_currently_rented)) ? '' : 'display: none;' }}">
+                                <label class="admin-label text-success">Yearly Rent (£)</label>
+                                <input type="number" name="yearly_rent" class="admin-input"
+                                    value="{{ old('yearly_rent', $property->yearly_rent) }}" placeholder="Total annual">
+                            </div>
+                        </div>
+                    </div>
 
-                                    document.getElementById("latitude").value = place.geometry.location.lat();
-                                    document.getElementById("longitude").value = place.geometry.location.lng();
-                                });
+                    <div class="mt-4">
+                        <label class="admin-label">Amenities & Selling Points</label>
+                        <div class="feature-chips">
+                            @foreach($features as $feature)
+                                <div class="feature-chip">
+                                    <input type="checkbox" name="features[]" value="{{ $feature->id }}"
+                                        id="f_{{ $feature->id }}" {{ in_array($feature->id, old('features', $selectedFeatures)) ? 'checked' : '' }}>
+                                    <label for="f_{{ $feature->id }}"><i class="bi bi-check2"></i> {{ $feature->name }}</label>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 3: MEDIA & STATUS -->
+        <div class="wizard-step" id="step-3">
+            <div class="content-card">
+                <div class="card-header">
+                    <h5><i class="bi bi-camera-fill me-2 text-pink"></i>Marketing & Status</h5>
+                </div>
+                <div class="card-body p-4 p-lg-5">
+                    <div class="row g-4 mb-5">
+                        <div class="col-md-4 admin-form-group">
+                            <label class="admin-label">Cash Buyers Only?</label>
+                            <select name="is_cash_buy" class="admin-input">
+                                <option value="0" {{ old('is_cash_buy', $property->is_cash_buy) == '0' ? 'selected' : '' }}>No
+                                </option>
+                                <option value="1" {{ old('is_cash_buy', $property->is_cash_buy) == '1' ? 'selected' : '' }}>
+                                    Yes</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 admin-form-group">
+                            <label class="admin-label">Exchange Deadline</label>
+                            <select name="exchange_deadline" class="admin-input">
+                                <option value="14 days" {{ old('exchange_deadline', $property->exchange_deadline) == '14 days' ? 'selected' : '' }}>Within 14 Days</option>
+                                <option value="28 days" {{ old('exchange_deadline', $property->exchange_deadline) == '28 days' ? 'selected' : '' }}>Within 28 Days</option>
+                                <option value="6 weeks" {{ old('exchange_deadline', $property->exchange_deadline) == '6 weeks' ? 'selected' : '' }}>6 Weeks</option>
+                                <option value="flexible" {{ old('exchange_deadline', $property->exchange_deadline) == 'flexible' ? 'selected' : '' }}>Flexible</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 admin-form-group">
+                            <label class="admin-label">Completion Deadline</label>
+                            <select name="completion_deadline" class="admin-input">
+                                <option value="14 days" {{ old('completion_deadline', $property->completion_deadline) == '14 days' ? 'selected' : '' }}>Within 14 Days</option>
+                                <option value="28 days" {{ old('completion_deadline', $property->completion_deadline) == '28 days' ? 'selected' : '' }}>Within 28 Days</option>
+                                <option value="6 weeks" {{ old('completion_deadline', $property->completion_deadline) == '6 weeks' ? 'selected' : '' }}>6 Weeks</option>
+                                <option value="flexible" {{ old('completion_deadline', $property->completion_deadline) == 'flexible' ? 'selected' : '' }}>Flexible</option>
+                            </select>
+                        </div>
+                        @if(auth()->user()->role === 'admin')
+                            <div class="col-md-4 admin-form-group">
+                                <label class="admin-label">Listing Status</label>
+                                <select name="status" class="admin-input">
+                                    <option value="pending" {{ old('status', $property->status) == 'pending' ? 'selected' : '' }}>
+                                        Pending</option>
+                                    <option value="approved" {{ old('status', $property->status) == 'approved' ? 'selected' : '' }}>Approved</option>
+                                    <option value="disapproved" {{ old('status', $property->status) == 'disapproved' ? 'selected' : '' }}>Disapproved</option>
+                                    <option value="sold out" {{ old('status', $property->status) == 'sold out' ? 'selected' : '' }}>Sold Out</option>
+                                </select>
+                            </div>
+                        @else
+                            <div class="col-md-4 admin-form-group">
+                                <label class="admin-label">Listing Status</label>
+                                <select name="status" class="admin-input">
+                                    <option value="pending" {{ old('status', $property->status) == 'pending' ? 'selected' : '' }}>
+                                        Pending</option>
+                                    <option value="sold out" {{ old('status', $property->status) == 'sold out' ? 'selected' : '' }}>Sold Out</option>
+                                    @if(!in_array($property->status, ['pending', 'sold out']))
+                                        <option value="{{ $property->status }}" selected disabled>{{ ucfirst($property->status) }}
+                                        </option>
+                                    @endif
+                                </select>
+                            </div>
+                        @endif
+                    </div>
+
+                    <div class="form-section-title"><i class="bi bi-card-text"></i> Property Description</div>
+                    <div class="admin-form-group">
+                        <textarea name="full_description" id="editor"
+                            class="admin-input">{{ old('full_description', $property->full_description) }}</textarea>
+                    </div>
+
+                    <div class="form-section-title mt-5"><i class="bi bi-images"></i> Media Assets</div>
+                    <div class="row g-4">
+                        <div class="col-md-6 admin-form-group">
+                            <label class="admin-label">Main Display Image</label>
+                            @if($property->thumbnail)
+                                <div class="mb-2">
+                                    <img src="{{ Storage::url($property->thumbnail) }}" alt="Thumbnail" class="img-thumbnail"
+                                        style="height: 100px;">
+                                </div>
+                            @endif
+                            <div class="upload-placeholder" onclick="document.getElementById('thumb-input').click()">
+                                <i class="bi bi-cloud-arrow-up fs-1 text-pink opacity-50"></i>
+                                <p class="mb-0 text-muted mt-2">Click to replace Thumbnail</p>
+                                <input type="file" id="thumb-input" name="thumbnail" class="d-none" accept="image/*">
+                                <div id="thumb-preview" class="preview-container"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 admin-form-group">
+                            <label class="admin-label">Gallery Images</label>
+                            @if($property->gallery_images)
+                                <div class="d-flex flex-wrap gap-2 mb-2">
+                                    @foreach($property->gallery_images as $img)
+                                        <img src="{{ Storage::url($img) }}" alt="Gallery" class="img-thumbnail"
+                                            style="height: 50px;">
+                                    @endforeach
+                                </div>
+                            @endif
+                            <div class="upload-placeholder" onclick="document.getElementById('gallery-input').click()">
+                                <i class="bi bi-images fs-1 text-pink opacity-50"></i>
+                                <p class="mb-0 text-muted mt-2">Click to replace Multi-images</p>
+                                <input type="file" id="gallery-input" name="gallery_images[]" class="d-none" multiple
+                                    accept="image/*">
+                                <div id="gallery-preview" class="preview-container"></div>
+                            </div>
+                            <small class="text-muted">Uploading new images will replace existing ones.</small>
+                        </div>
+                        <div class="col-12 admin-form-group">
+                            <label class="admin-label">Property Video (Optional)</label>
+                            @if($property->video_url)
+                                <div class="mb-2">
+                                    <p class="small text-muted mb-1">Current Video: <a
+                                            href="{{ Storage::url($property->video_url) }}" target="_blank">View Video</a></p>
+                                </div>
+                            @endif
+                            <input type="file" id="video-input" name="video" class="form-control admin-input p-2"
+                                accept="video/*">
+                            <div id="video-preview" class="mt-3" style="display: none;">
+                                <video controls
+                                    style="max-width: 100%; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);"></video>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- WIZARD FOOTER -->
+        <div class="wizard-footer">
+            <button type="button" class="btn btn-outline-secondary px-5 py-3 rounded-pill fw-bold" id="prev-btn"
+                style="visibility: hidden;">
+                <i class="bi bi-arrow-left me-2"></i>Back To Previous
+            </button>
+
+            <div class="price-badge-premium d-none d-md-flex">
+                <i class="bi bi-shield-check fs-2 text-pink"></i>
+                <div>
+                    <span>Investor Cost (Portal Price)</span>
+                    <h4 id="footer-portal-price">£0.00</h4>
+                </div>
+            </div>
+
+            <div>
+                <button type="button" class="btn btn-admin-primary px-5 py-3 rounded-pill" id="next-btn">
+                    Next Step <i class="bi bi-arrow-right ms-2"></i>
+                </button>
+                <button type="submit" class="btn btn-admin-pink px-5 py-3 rounded-pill" id="finish-btn"
+                    style="display: none;">
+                    Update Deal <i class="bi bi-broadcast ms-2"></i>
+                </button>
+            </div>
+        </div>
+    </form>
+
+    @push('scripts')
+        <script src="https://cdn.ckeditor.com/ckeditor5/40.0.0/classic/ckeditor.js"></script>
+        <script
+            src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDtagAWzRL7h2Safzk7EwKK0x6v42RlsdI&libraries=places"></script>
+        <script>
+            let currentStep = 1;
+            const totalSteps = 3;
+
+            function updateWizard() {
+                document.querySelectorAll('.wizard-step').forEach(s => s.classList.remove('active'));
+                document.getElementById(`step-${currentStep}`).classList.add('active');
+
+                document.querySelectorAll('.step-anchor').forEach((item, idx) => {
+                    const sIdx = idx + 1;
+                    item.classList.remove('active', 'completed');
+                    if (sIdx === currentStep) item.classList.add('active');
+                    if (sIdx < currentStep) item.classList.add('completed');
+                });
+
+                document.getElementById('prev-btn').style.visibility = currentStep === 1 ? 'hidden' : 'visible';
+
+                if (currentStep === totalSteps) {
+                    document.getElementById('next-btn').style.display = 'none';
+                    document.getElementById('finish-btn').style.display = 'block';
+                } else {
+                    document.getElementById('next-btn').style.display = 'block';
+                    document.getElementById('finish-btn').style.display = 'none';
+                }
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+
+            function goToStep(s) {
+                if (s < currentStep) {
+                    currentStep = s;
+                    updateWizard();
+                }
+            }
+
+            document.getElementById('next-btn').addEventListener('click', () => {
+                if (currentStep < totalSteps) { currentStep++; updateWizard(); }
+            });
+
+            document.getElementById('prev-btn').addEventListener('click', () => {
+                if (currentStep > 1) { currentStep--; updateWizard(); }
+            });
+
+            // Editor
+            ClassicEditor.create(document.querySelector('#editor')).catch(console.error);
+
+            // Maps Autocomplete
+            function initAutocomplete() {
+                const input = document.getElementById("location-input");
+                if (!input) return;
+
+                const autocomplete = new google.maps.places.Autocomplete(input, { componentRestrictions: { country: "gb" } });
+                autocomplete.addListener("place_changed", () => {
+                    const place = autocomplete.getPlace();
+                    if (place.geometry) {
+                        document.getElementById("latitude").value = place.geometry.location.lat();
+                        document.getElementById("longitude").value = place.geometry.location.lng();
+
+                        // Parse Address Components
+                        place.address_components.forEach(comp => {
+                            const types = comp.types;
+                            if (types.includes('postal_code')) document.getElementById('postcode-input').value = comp.long_name;
+                            if (types.includes('locality')) document.getElementById('city-input').value = comp.long_name;
+                        });
+                    }
+                });
+            }
+            document.addEventListener('DOMContentLoaded', initAutocomplete);
+
+            // REAL-TIME CALCULATIONS
+            const vendorInput = document.getElementById('vendor-price');
+            const psgFeesDisplay = document.getElementById('psg-fees-display');
+            const portalPriceDisplay = document.getElementById('portal-price-display');
+            const footerPortalPrice = document.getElementById('footer-portal-price');
+
+            const mvMin = document.getElementById('mv-min');
+            const mvMax = document.getElementById('mv-max');
+            const mvAvgDisplay = document.getElementById('mv-avg-display');
+            const discountDisplay = document.getElementById('discount-display');
+
+            function runCalcs() {
+                // Price & Fees
+                const vendor = parseFloat(vendorInput.value) || 0;
+                const fee = vendor * 0.02;
+                const portal = vendor + fee;
+
+                psgFeesDisplay.value = fee.toLocaleString('en-GB', { minimumFractionDigits: 2 });
+                portalPriceDisplay.value = portal.toLocaleString('en-GB', { minimumFractionDigits: 2 });
+                footerPortalPrice.textContent = '£' + portal.toLocaleString('en-GB', { minimumFractionDigits: 2 });
+
+                // Market Value & Discount
+                const min = parseFloat(mvMin.value) || 0;
+                const max = parseFloat(mvMax.value) || 0;
+                const avg = (min + max) / 2;
+
+                if (avg > 0) {
+                    mvAvgDisplay.value = avg.toLocaleString('en-GB', { minimumFractionDigits: 2 });
+                    const disc = ((1 - (portal / avg)) * 100);
+                    discountDisplay.textContent = Math.max(0, disc).toFixed(1) + '%';
+                } else {
+                    mvAvgDisplay.value = '';
+                    discountDisplay.textContent = '0%';
+                }
+            }
+
+            [vendorInput, mvMin, mvMax].forEach(el => el.addEventListener('input', runCalcs));
+
+            // Initial calc
+            document.addEventListener('DOMContentLoaded', runCalcs);
+
+            // Logic Togglers
+            const investmentType = document.getElementById('investment_type');
+            const tenureType = document.getElementById('tenure-type');
+            const rentedCheck = document.getElementById('is_currently_rented');
+
+            function toggleLogic() {
+                // Tenure
+                const leaseYearsContainer = document.getElementById('lease-years-container');
+                if (leaseYearsContainer) leaseYearsContainer.style.display = (tenureType.value === 'leasehold') ? 'block' : 'none';
+
+                // Rental Strategy
+                const isRental = (investmentType.value === 'rental' || investmentType.value === 'hmo' || investmentType.value === 'r2r');
+                const rentalSection = document.getElementById('rental-fields-section');
+                if (rentalSection) {
+                    rentalSection.style.display = isRental ? 'block' : 'none';
+
+                    // Yearly Rent
+                    const yearlyRentContainer = document.getElementById('yearly-rent-container');
+                    if (yearlyRentContainer) {
+                        yearlyRentContainer.style.display = (isRental && rentedCheck && rentedCheck.checked) ? 'block' : 'none';
+                    }
+                }
+            }
+
+            [investmentType, tenureType, rentedCheck].forEach(el => {
+                if (el) el.addEventListener('change', toggleLogic);
+            });
+            toggleLogic();
+
+            // Property Type Filtering
+            const propertyTypeSelect = document.getElementById('property-type-select');
+            const unitTypeSelect = document.getElementById('unit-type-select');
+            const unitOptions = Array.from(unitTypeSelect.options);
+
+            function filterUnitTypes() {
+                const parentId = propertyTypeSelect.value;
+                const currentValue = unitTypeSelect.value;
+                unitTypeSelect.innerHTML = '<option value="">Select Type</option>';
+
+                unitOptions.forEach(opt => {
+                    if (opt.getAttribute('data-parent') === parentId) {
+                        const newOpt = opt.cloneNode(true);
+                        if (newOpt.value === currentValue) newOpt.selected = true;
+                        unitTypeSelect.appendChild(newOpt);
+                    }
+                });
+            }
+
+            propertyTypeSelect.addEventListener('change', filterUnitTypes);
+            filterUnitTypes(); // Initial run
+
+            // PREVIEW SYSTEM
+            function setupPreview(inputId, previewId, isMultiple = false) {
+                const input = document.getElementById(inputId);
+                const preview = document.getElementById(previewId);
+                if (!input || !preview) return;
+
+                input.addEventListener('change', function (e) {
+                    preview.innerHTML = '';
+                    const files = e.target.files;
+
+                    for (let i = 0; i < files.length; i++) {
+                        const file = files[i];
+                        const reader = new FileReader();
+
+                        reader.onload = function (event) {
+                            const div = document.createElement('div');
+                            div.className = 'preview-item';
+
+                            if (file.type.startsWith('image/')) {
+                                const img = document.createElement('img');
+                                img.src = event.target.result;
+                                div.appendChild(img);
+                            } else if (file.type.startsWith('video/')) {
+                                const video = document.createElement('video');
+                                video.src = event.target.result;
+                                div.appendChild(video);
                             }
 
-                            // Dynamic Unit Type Filtering & Bed/Bath Visibility
-                            const propertyTypeSelect = document.getElementById('property_type_id');
-                            const unitTypeSelect = document.getElementById('unit_type_id');
-                            const bedBathSection = document.getElementById('bed-bath-section');
-                            const unitTypeOptions = Array.from(unitTypeSelect.options);
+                            preview.appendChild(div);
+                        }
+                        reader.readAsDataURL(file);
+                    }
+                });
+            }
 
-                            function filterUnitTypes(isInitial = false) {
-                                const selectedTypeId = propertyTypeSelect.value;
-                                const selectedTypeName = propertyTypeSelect.options[propertyTypeSelect.selectedIndex]?.dataset.name || '';
-                                const currentUnitTypeId = unitTypeSelect.value;
+            setupPreview('thumb-input', 'thumb-preview');
+            setupPreview('gallery-input', 'gallery-preview', true);
 
-                                // Show/Hide Bed Bath section for Commercial
-                                if (selectedTypeName.includes('commercial')) {
-                                    bedBathSection.style.display = 'none';
-                                } else {
-                                    bedBathSection.style.display = 'flex';
-                                }
+            const videoInput = document.getElementById('video-input');
+            const videoPreview = document.getElementById('video-preview');
+            const videoElement = videoPreview ? videoPreview.querySelector('video') : null;
 
-                                // Filter Unit Types
-                                unitTypeSelect.innerHTML = '<option value="">Choose Category (Optional)</option>';
-
-                                if (selectedTypeId) {
-                                    const filteredOptions = unitTypeOptions.filter(opt =>
-                                        opt.dataset.propertyType === selectedTypeId || opt.value === ""
-                                    );
-
-                                    filteredOptions.forEach(opt => {
-                                        if (opt.value !== "") {
-                                            const newOpt = opt.cloneNode(true);
-                                            if (isInitial && newOpt.value === currentUnitTypeId) {
-                                                newOpt.selected = true;
-                                            }
-                                            unitTypeSelect.appendChild(newOpt);
-                                        }
-                                    });
-                                }
-                            }
-
-                            propertyTypeSelect.addEventListener('change', () => filterUnitTypes(false));
-
-                            // Initial call
-                            if (propertyTypeSelect.value) {
-                                filterUnitTypes(true);
-                            }
-
-                            // --- Dynamic Financial Fields ---
-                            const financingSelect = document.getElementById('financing_type');
-                            const mortgageDetails = document.getElementById('mortgage_details');
-
-                            if (financingSelect) {
-                                financingSelect.addEventListener('change', function () {
-                                    mortgageDetails.style.display = this.value === 'mortgage' ? 'block' : 'none';
-                                });
-                                if (financingSelect.value === 'mortgage') mortgageDetails.style.display = 'block';
-                            }
-
-                            // --- Dynamic Investment Fields ---
-                            const investmentSelect = document.getElementById('investment_type');
-                            const buyToSellDetails = document.getElementById('buy_to_sell_details');
-                            const rentalDetails = document.getElementById('rental_details');
-
-                            if (investmentSelect) {
-                                investmentSelect.addEventListener('change', function () {
-                                    buyToSellDetails.style.display = this.value === 'buy_to_sell' ? 'block' : 'none';
-                                    rentalDetails.style.display = this.value === 'rental' ? 'block' : 'none';
-                                });
-                                if (investmentSelect.value === 'buy_to_sell') buyToSellDetails.style.display = 'block';
-                                if (investmentSelect.value === 'rental') rentalDetails.style.display = 'block';
-                            }
-
-                            // --- Dynamic Tenure Fields ---
-                            const tenureSelect = document.getElementById('tenure_type');
-                            const leaseholdDetails = document.getElementById('leasehold_details');
-
-                            if (tenureSelect) {
-                                tenureSelect.addEventListener('change', function () {
-                                    leaseholdDetails.style.display = this.value === 'leasehold' ? 'block' : 'none';
-                                });
-                                if (tenureSelect.value === 'leasehold') leaseholdDetails.style.display = 'block';
-                            }
-
-                            // PREVIEW SYSTEM
-                            function setupPreview(inputId, previewId, isMultiple = false) {
-                                const input = document.getElementById(inputId);
-                                const preview = document.getElementById(previewId);
-
-                                input.addEventListener('change', function(e) {
-                                    if (isMultiple) preview.innerHTML = '';
-                                    else preview.innerHTML = '';
-
-                                    const files = e.target.files;
-                                    if (!files) return;
-
-                                    for (let i = 0; i < files.length; i++) {
-                                        const file = files[i];
-                                        if (!file.type.startsWith('image/')) continue;
-
-                                        const reader = new FileReader();
-                                        reader.onload = function(e) {
-                                            const div = document.createElement('div');
-                                            div.className = 'preview-item';
-                                            div.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
-                                            preview.appendChild(div);
-                                        }
-                                        reader.readAsDataURL(file);
-                                    }
-                                });
-                            }
-
-                            setupPreview('thumb-input', 'thumb-preview', false);
-                            setupPreview('gallery-input', 'gallery-preview', true);
-
-                            // Video Preview
-                            const videoInput = document.getElementById('video-input');
-                            const videoPreviewDiv = document.getElementById('video-preview');
-                            const videoElement = videoPreviewDiv.querySelector('video');
-
-                            videoInput.addEventListener('change', function(e) {
-                                const file = e.target.files[0];
-                                if (file && file.type.startsWith('video/')) {
-                                    const url = URL.createObjectURL(file);
-                                    videoElement.src = url;
-                                    videoPreviewDiv.style.display = 'block';
-                                } else {
-                                    videoPreviewDiv.style.display = 'none';
-                                }
-                            });
-
-                            // --- Dynamic Costs Rows ---
-                            let costIndex = 1000;
-                            window.addCostRow = function () {
-                                const container = document.getElementById('costs_container');
-                                const html = `
-                                                <div class="row g-2 mb-2 align-items-center cost-row">
-                                                    <div class="col-7">
-                                                        <input type="text" name="costs[${costIndex}][name]" class="form-control form-control-sm" placeholder="Cost Name (e.g. Stamp Duty)">
-                                                    </div>
-                                                    <div class="col-4">
-                                                        <div class="input-group input-group-sm">
-                                                            <span class="input-group-text">£</span>
-                                                            <input type="number" step="0.01" name="costs[${costIndex}][amount]" class="form-control" placeholder="0.00">
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-1 text-end">
-                                                        <button type="button" class="btn btn-sm text-danger" onclick="this.closest('.cost-row').remove()"><i class="fas fa-trash"></i></button>
-                                                    </div>
-                                                </div>
-                                            `;
-                                container.insertAdjacentHTML('beforeend', html);
-                                costIndex++;
-                            }
-
-                            // --- Dynamic Tenants Rows ---
-                            let tenantIndex = 1000;
-                            window.addTenantRow = function () {
-                                const container = document.getElementById('tenants_container');
-                                const html = `
-                                                <div class="row g-2 mb-3 p-2 border rounded bg-white tenant-row position-relative">
-                                                    <button type="button" class="btn btn-sm btn-link text-danger position-absolute top-0 end-0 text-decoration-none" onclick="this.closest('.tenant-row').remove()" style="z-index:10;">&times;</button>
-                                                    <div class="col-md-6">
-                                                        <label class="form-label small mb-1">Full Name</label>
-                                                        <input type="text" name="tenants[${tenantIndex}][name]" class="form-control form-control-sm" required>
-                                                    </div>
-                                                    <div class="col-md-6">
-                                                        <label class="form-label small mb-1">Phone</label>
-                                                        <input type="text" name="tenants[${tenantIndex}][phone]" class="form-control form-control-sm">
-                                                    </div>
-                                                    <div class="col-md-8">
-                                                        <label class="form-label small mb-1">Email</label>
-                                                        <input type="email" name="tenants[${tenantIndex}][email]" class="form-control form-control-sm">
-                                                    </div>
-                                                    <div class="col-md-4 d-flex align-items-end">
-                                                        <div class="form-check mb-1">
-                                                            <input class="form-check-input" type="checkbox" name="tenants[${tenantIndex}][is_primary]" id="primary_${tenantIndex}">
-                                                            <label class="form-check-label small" for="primary_${tenantIndex}">Primary Contact</label>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            `;
-                                container.insertAdjacentHTML('beforeend', html);
-                                tenantIndex++;
-                            }
-
-                            if (typeof google === 'object' && typeof google.maps === 'object') {
-                                initAutocomplete();
-                            }
-                        </script>
-                @endpush
-
+            if (videoInput && videoPreview && videoElement) {
+                videoInput.addEventListener('change', function (e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const url = URL.createObjectURL(file);
+                        videoElement.src = url;
+                        videoPreview.style.display = 'block';
+                    }
+                });
+            }
+        </script>
+    @endpush
 @endsection

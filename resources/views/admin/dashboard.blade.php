@@ -16,16 +16,16 @@
                     </ol>
                 </nav>
             </div>
-            @if(auth()->user()->role === 'admin')
-                <div class="d-flex gap-2">
-                    <a href="{{ route('admin.available-properties.create') }}" class="btn btn-admin-pink">
-                        <i class="bi bi-plus-lg me-2"></i>Add Available Property
-                    </a>
+            <div class="d-flex gap-2">
+                <a href="{{ route('admin.available-properties.create') }}" class="btn btn-admin-pink">
+                    <i class="bi bi-plus-lg me-2"></i>Add Available Property
+                </a>
+                @if(auth()->user()->role === 'admin')
                     <a href="{{ route('admin.create') }}" class="btn btn-admin-primary">
                         <i class="bi bi-check-circle me-2"></i>Add Sold Property
                     </a>
-                </div>
-            @endif
+                @endif
+            </div>
 
         </div>
     </div>
@@ -50,21 +50,23 @@
                 <p>Average BMV</p>
             </div>
         </div>
-        <div class="col-xl-3 col-md-6">
-            <div class="stats-card success shadow-sm border-0">
-                <div class="icon">
-                    <i class="bi bi-check-circle"></i>
+        @if(auth()->user()->role === 'admin')
+            <div class="col-xl-3 col-md-6">
+                <div class="stats-card success shadow-sm border-0">
+                    <div class="icon">
+                        <i class="bi bi-check-circle"></i>
+                    </div>
+                    <h3>{{ \App\Models\News::count() }}</h3>
+                    <p>Blog Posts</p>
                 </div>
-                <h3>{{ \App\Models\News::count() }}</h3>
-                <p>Blog Posts</p>
             </div>
-        </div>
+        @endif
         <div class="col-xl-3 col-md-6">
             <div class="stats-card warning shadow-sm border-0">
                 <div class="icon">
                     <i class="bi bi-people"></i>
                 </div>
-                <h3>{{ \App\Models\User::count() }}</h3>
+                <h3>{{ $stats['dynamic_count'] }}</h3>
                 <p>Total Investors</p>
             </div>
         </div>
@@ -138,12 +140,14 @@
                             class="btn btn-light border text-start p-3 hover-lift">
                             <i class="bi bi-plus-circle-dotted text-pink me-2"></i> Add Available Property
                         </a>
-                        <a href="{{ route('admin.create') }}" class="btn btn-light border text-start p-3 hover-lift">
-                            <i class="bi bi-check-circle text-blue me-2"></i> Add Sold Property
-                        </a>
-                        <a href="{{ route('admin.news.create') }}" class="btn btn-light border text-start p-3 hover-lift">
-                            <i class="bi bi-newspaper text-success me-2"></i> Create Blog Post
-                        </a>
+                        @if(auth()->user()->role === 'admin')
+                            <a href="{{ route('admin.create') }}" class="btn btn-light border text-start p-3 hover-lift">
+                                <i class="bi bi-check-circle text-blue me-2"></i> Add Sold Property
+                            </a>
+                            <a href="{{ route('admin.news.create') }}" class="btn btn-light border text-start p-3 hover-lift">
+                                <i class="bi bi-newspaper text-success me-2"></i> Create Blog Post
+                            </a>
+                        @endif
                     </div>
                 </div>
             </div>

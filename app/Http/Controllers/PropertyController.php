@@ -11,13 +11,24 @@ class PropertyController extends Controller
 {
     public function dashboard()
     {
-        $properties = Property::latest();
+        $user = Auth::user();
+
+        // If admin, show total Users (investors). If agent, show their imported Investors.
+        if ($user->role === 'admin') {
+            $count = \App\Models\User::where('role', 'user')->count();
+            $label = 'Total Users';
+        } else {
+            $count = \App\Models\Investor::where('agent_id', $user->id)->count();
+            $label = 'My Investors';
+        }
 
         // Basic stats for dashboard
         $stats = [
-            'total_properties' => Property::count(),
-            'avg_bmv' => Property::avg('bmv_percentage') ?? 0,
-            'recent_properties' => Property::latest()->take(5)->get()
+            'total_properties' => \App\Models\Property::count(),
+            'avg_bmv' => \App\Models\Property::avg('bmv_percentage') ?? 0,
+            'recent_properties' => \App\Models\Property::latest()->take(5)->get(),
+            'dynamic_count' => $count,
+            'dynamic_label' => $label,
         ];
 
         return view('admin.dashboard', compact('stats'));
