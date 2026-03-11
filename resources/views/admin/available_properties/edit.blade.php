@@ -182,115 +182,117 @@
             transition: all 0.3s;
         }
 
-        .upload-placeholder:hover {
-            border-color: var(--primary-pink);
-            background: white;
-        }
+        .upload-placeholder:hover , 
+            .upload-placeholder.drag-over {
+                border-color: var(--primary-pink);
+                background: rgba(249, 92, 168, 0.05);
+                transform: translateY(-2px);
+            }
 
-        .preview-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            gap: 10px;
-            margin-top: 15px;
-        }
+            .preview-container {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+                gap: 10px;
+                margin-top: 15px;
+            }
 
-        .preview-item {
-            position: relative;
-            aspect-ratio: 1;
-            border-radius: 8px;
-            overflow: hidden;
-            border: 1px solid #e3e6f0;
-        }
+            .preview-item {
+                position: relative;
+                aspect-ratio: 1;
+                border-radius: 8px;
+                overflow: hidden;
+                border: 1px solid #e3e6f0;
+            }
 
-        .preview-item img,
-        .preview-item video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+            .preview-item img,
+            .preview-item video {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
 
-        .video-preview-item {
-            aspect-ratio: 16/9;
-            width: 100%;
-            max-width: 400px;
-        }
+            .video-preview-item {
+                aspect-ratio: 16/9;
+                width: 100%;
+                max-width: 400px;
+            }
 
-        /* Wizard Footer */
-        .wizard-footer {
-            margin-top: 30px;
-            padding: 25px 0;
-            border-top: 1px solid #e3e6f0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+            /* Wizard Footer */
+            .wizard-footer {
+                margin-top: 30px;
+                padding: 25px 0;
+                border-top: 1px solid #e3e6f0;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
 
-        .price-badge-premium {
-            background: var(--primary-blue);
-            color: white;
-            padding: 15px 25px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        }
+            .price-badge-premium {
+                background: var(--primary-blue);
+                color: white;
+                padding: 15px 25px;
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                gap: 15px;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            }
 
-        .price-badge-premium div span {
-            display: block;
-            text-transform: uppercase;
-            font-size: 0.65rem;
-            font-weight: 800;
-            opacity: 0.7;
-            letter-spacing: 0.5px;
-        }
+            .price-badge-premium div span {
+                display: block;
+                text-transform: uppercase;
+                font-size: 0.65rem;
+                font-weight: 800;
+                opacity: 0.7;
+                letter-spacing: 0.5px;
+            }
 
-        .price-badge-premium h4 {
-            margin: 0;
-            font-weight: 800;
-            color: #4CD7F6;
-        }
+            .price-badge-premium h4 {
+                margin: 0;
+                font-weight: 800;
+                color: #4CD7F6;
+            }
 
-        .ck-editor__editable {
-            min-height: 250px;
-        }
+            .ck-editor__editable {
+                min-height: 250px;
+            }
 
-        .feature-chips {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
+            .feature-chips {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
 
-        .feature-chip {
-            position: relative;
-        }
+            .feature-chip {
+                position: relative;
+            }
 
-        .feature-chip input {
-            position: absolute;
-            opacity: 0;
-            cursor: pointer;
-            height: 0;
-            width: 0;
-        }
+            .feature-chip input {
+                position: absolute;
+                opacity: 0;
+                cursor: pointer;
+                height: 0;
+                width: 0;
+            }
 
-        .feature-chip label {
-            display: block;
-            padding: 8px 16px;
-            background: #f8f9fc;
-            border: 1px solid #e3e6f0;
-            border-radius: 50px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            color: #4e5e7a;
-            transition: all 0.2s;
-        }
+            .feature-chip label {
+                display: block;
+                padding: 8px 16px;
+                background: #f8f9fc;
+                border: 1px solid #e3e6f0;
+                border-radius: 50px;
+                cursor: pointer;
+                font-size: 0.85rem;
+                color: #4e5e7a;
+                transition: all 0.2s;
+            }
 
-        .feature-chip input:checked+label {
-            background: var(--primary-pink);
-            color: white;
-            border-color: var(--primary-pink);
-        }
-    </style>
+            .feature-chip input:checked+label {
+                background: var(--primary-pink);
+                color: white;
+                border-color: var(--primary-pink);
+            }
+        </style>
 @endpush
 
 @section('content')
@@ -707,11 +709,13 @@
                                             href="{{ Storage::url($property->video_url) }}" target="_blank">View Video</a></p>
                                 </div>
                             @endif
-                            <input type="file" id="video-input" name="video" class="form-control admin-input p-2"
-                                accept="video/*">
-                            <div id="video-preview" class="mt-3" style="display: none;">
-                                <video controls
-                                    style="max-width: 100%; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);"></video>
+                            <div class="upload-placeholder" onclick="document.getElementById('video-input').click()">
+                                <i class="bi bi-camera-video fs-1 text-pink opacity-50"></i>
+                                <p class="mb-0 text-muted mt-2">Click or Drag & Drop Property Video</p>
+                                <input type="file" id="video-input" name="video" class="d-none" accept="video/*">
+                                <div id="video-preview" class="mt-3" style="display: none;">
+                                    <video controls style="max-width: 100%; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);"></video>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -914,58 +918,73 @@
             propertyTypeSelect.addEventListener('change', filterUnitTypes);
             filterUnitTypes(); // Initial run
 
-            // PREVIEW SYSTEM
-            function setupPreview(inputId, previewId, isMultiple = false) {
+            // PREVIEW SYSTEM & DRAG AND DROP
+            function setupUploadArea(inputId, previewId, isMultiple = false) {
                 const input = document.getElementById(inputId);
                 const preview = document.getElementById(previewId);
                 if (!input || !preview) return;
+                const placeholder = input.closest('.upload-placeholder');
 
-                input.addEventListener('change', function (e) {
-                    preview.innerHTML = '';
-                    const files = e.target.files;
+                if (!placeholder) return;
 
-                    for (let i = 0; i < files.length; i++) {
-                        const file = files[i];
+                // Stop Propagation and Default behavior for drag events
+                ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                    placeholder.addEventListener(eventName, e => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }, false);
+                });
+
+                // Visual markers
+                ['dragenter', 'dragover'].forEach(eventName => {
+                    placeholder.addEventListener(eventName, () => placeholder.classList.add('drag-over'), false);
+                });
+
+                ['dragleave', 'drop'].forEach(eventName => {
+                    placeholder.addEventListener(eventName, () => placeholder.classList.remove('drag-over'), false);
+                });
+
+                // Handle dropped files
+                placeholder.addEventListener('drop', e => {
+                    const dt = e.dataTransfer;
+                    const files = dt.files;
+                    input.files = files; // Assign files to input
+                    handleFiles(files, preview, isMultiple, inputId);
+                }, false);
+
+                // Handle input change
+                input.addEventListener('change', e => {
+                    handleFiles(e.target.files, preview, isMultiple, inputId);
+                });
+            }
+
+            function handleFiles(files, preview, isMultiple, inputId) {
+                if (!isMultiple) preview.innerHTML = '';
+                else preview.innerHTML = ''; 
+
+                Array.from(files).forEach(file => {
+                    if (file.type.startsWith('image/')) {
                         const reader = new FileReader();
-
-                        reader.onload = function (event) {
+                        reader.onload = e => {
                             const div = document.createElement('div');
                             div.className = 'preview-item';
-
-                            if (file.type.startsWith('image/')) {
-                                const img = document.createElement('img');
-                                img.src = event.target.result;
-                                div.appendChild(img);
-                            } else if (file.type.startsWith('video/')) {
-                                const video = document.createElement('video');
-                                video.src = event.target.result;
-                                div.appendChild(video);
-                            }
-
+                            div.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
                             preview.appendChild(div);
-                        }
+                        };
                         reader.readAsDataURL(file);
-                    }
-                });
-            }
-
-            setupPreview('thumb-input', 'thumb-preview');
-            setupPreview('gallery-input', 'gallery-preview', true);
-
-            const videoInput = document.getElementById('video-input');
-            const videoPreview = document.getElementById('video-preview');
-            const videoElement = videoPreview ? videoPreview.querySelector('video') : null;
-
-            if (videoInput && videoPreview && videoElement) {
-                videoInput.addEventListener('change', function (e) {
-                    const file = e.target.files[0];
-                    if (file) {
+                    } else if (file.type.startsWith('video/')) {
+                        const videoPreviewDiv = document.getElementById('video-preview');
+                        const videoElement = videoPreviewDiv.querySelector('video');
                         const url = URL.createObjectURL(file);
                         videoElement.src = url;
-                        videoPreview.style.display = 'block';
+                        videoPreviewDiv.style.display = 'block';
                     }
                 });
             }
+
+            setupUploadArea('thumb-input', 'thumb-preview', false);
+            setupUploadArea('gallery-input', 'gallery-preview', true);
+            setupUploadArea('video-input', 'video-preview', false);
         </script>
     @endpush
 @endsection

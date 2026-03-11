@@ -182,9 +182,11 @@
             transition: all 0.3s;
         }
 
-        .upload-placeholder:hover {
+        .upload-placeholder:hover,
+        .upload-placeholder.drag-over {
             border-color: var(--primary-pink);
-            background: white;
+            background: rgba(249, 92, 168, 0.05);
+            transform: translateY(-2px);
         }
 
         .preview-container {
@@ -253,6 +255,42 @@
 
         .ck-editor__editable {
             min-height: 250px;
+        }
+
+        .feature-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .feature-chip {
+            position: relative;
+        }
+
+        .feature-chip input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+            height: 0;
+            width: 0;
+        }
+
+        .feature-chip label {
+            display: block;
+            padding: 8px 16px;
+            background: #f8f9fc;
+            border: 1px solid #e3e6f0;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            color: #4e5e7a;
+            transition: all 0.2s;
+        }
+
+        .feature-chip input:checked+label {
+            background: var(--primary-pink);
+            color: white;
+            border-color: var(--primary-pink);
         }
     </style>
 @endpush
@@ -524,7 +562,7 @@
                             @foreach($features as $feature)
                                 <div class="feature-chip">
                                     <input type="checkbox" name="features[]" value="{{ $feature->id }}"
-                                        id="f_{{ $feature->id }}">
+                                        id="f_{{ $feature->id }}" {{ is_array(old('features')) && in_array($feature->id, old('features')) ? 'checked' : '' }}>
                                     <label for="f_{{ $feature->id }}"><i class="bi bi-check2"></i> {{ $feature->name }}</label>
                                 </div>
                             @endforeach
@@ -598,11 +636,14 @@
                         </div>
                         <div class="col-12 admin-form-group">
                             <label class="admin-label">Property Video (Optional)</label>
-                            <input type="file" id="video-input" name="video" class="form-control admin-input p-2"
-                                accept="video/*">
-                            <div id="video-preview" class="mt-3" style="display: none;">
-                                <video controls
-                                    style="max-width: 100%; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);"></video>
+                            <div class="upload-placeholder" onclick="document.getElementById('video-input').click()">
+                                <i class="bi bi-camera-video fs-1 text-pink opacity-50"></i>
+                                <p class="mb-0 text-muted mt-2">Click or Drag & Drop Property Video</p>
+                                <input type="file" id="video-input" name="video" class="d-none" accept="video/*">
+                                <div id="video-preview" class="mt-3" style="display: none;">
+                                    <video controls
+                                        style="max-width: 100%; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);"></video>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -754,6 +795,7 @@
             }
 
             [vendorInput, mvMin, mvMax].forEach(el => el.addEventListener('input', runCalcs));
+            runCalcs(); // Initialize on load
 
             // Logic Togglers
             const investmentType = document.getElementById('investment_type');
@@ -794,52 +836,72 @@
             propertyTypeSelect.addEventListener('change', filterUnitTypes);
             filterUnitTypes(); // Initial run
 
-            // PREVIEW SYSTEM
-            function setupPreview(inputId, previewId, isMultiple = false) {
+            // PREVIEW SYSTEM & DRAG AND DROP
+            function setupUploadArea(inputId, previewId, isMultiple = false) {
                 const input = document.getElementById(inputId);
                 const preview = document.getElementById(previewId);
+                const placeholder = input.closest('.upload-placeholder');
 
-                input.addEventListener('change', function (e) {
-                    if (isMultiple) preview.innerHTML = '';
-                    else preview.innerHTML = '';
+                if (!placeholder) return;
 
-                    const files = e.target.files;
-                    if (!files) return;
+                // Stop Propagation and Default behavior for drag events
+                ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                    placeholder.addEventListener(eventName, e => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }, false);
+                });
 
-                    for (let i = 0; i < files.length; i++) {
-                        const file = files[i];
-                        if (!file.type.startsWith('image/')) continue;
+                // Visual markers
+                ['dragenter', 'dragover'].forEach(eventName => {
+                    placeholder.addEventListener(eventName, () => placeholder.classList.add('drag-over'), false);
+                });
 
+                ['dragleave', 'drop'].forEach(eventName => {
+                    placeholder.addEventListener(eventName, () => placeholder.classList.remove('drag-over'), false);
+                });
+
+                // Handle dropped files
+                placeholder.addEventListener('drop', e => {
+                    const dt = e.dataTransfer;
+                    const files = dt.files;
+                    input.files = files; // Assign files to input
+                    handleFiles(files, preview, isMultiple, inputId);
+                }, false);
+
+                // Handle input change
+                input.addEventListener('change', e => {
+                    handleFiles(e.target.files, preview, isMultiple, inputId);
+                });
+            }
+
+            function handleFiles(files, preview, isMultiple, inputId) {
+                if (!isMultiple) preview.innerHTML = '';
+                else preview.innerHTML = ''; // Clear for now, or append based on requirements
+
+                Array.from(files).forEach(file => {
+                    if (file.type.startsWith('image/')) {
                         const reader = new FileReader();
-                        reader.onload = function (e) {
+                        reader.onload = e => {
                             const div = document.createElement('div');
                             div.className = 'preview-item';
                             div.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
                             preview.appendChild(div);
-                        }
+                        };
                         reader.readAsDataURL(file);
+                    } else if (file.type.startsWith('video/')) {
+                        const videoPreviewDiv = document.getElementById('video-preview');
+                        const videoElement = videoPreviewDiv.querySelector('video');
+                        const url = URL.createObjectURL(file);
+                        videoElement.src = url;
+                        videoPreviewDiv.style.display = 'block';
                     }
                 });
             }
 
-            setupPreview('thumb-input', 'thumb-preview', false);
-            setupPreview('gallery-input', 'gallery-preview', true);
-
-            // Video Preview
-            const videoInput = document.getElementById('video-input');
-            const videoPreviewDiv = document.getElementById('video-preview');
-            const videoElement = videoPreviewDiv.querySelector('video');
-
-            videoInput.addEventListener('change', function (e) {
-                const file = e.target.files[0];
-                if (file && file.type.startsWith('video/')) {
-                    const url = URL.createObjectURL(file);
-                    videoElement.src = url;
-                    videoPreviewDiv.style.display = 'block';
-                } else {
-                    videoPreviewDiv.style.display = 'none';
-                }
-            });
+            setupUploadArea('thumb-input', 'thumb-preview', false);
+            setupUploadArea('gallery-input', 'gallery-preview', true);
+            setupUploadArea('video-input', 'video-preview', false);
         </script>
     @endpush
 @endsection
