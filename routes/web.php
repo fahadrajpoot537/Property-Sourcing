@@ -108,7 +108,7 @@ Route::prefix('admin')->middleware(['auth', 'agent'])->name('admin.')->group(fun
     Route::delete('/available-properties/{id}', [App\Http\Controllers\AvailablePropertyController::class, 'destroy'])->name('available-properties.destroy');
     Route::post('/available-properties/send-bulk-email', [App\Http\Controllers\AvailablePropertyController::class, 'sendBulkEmail'])->name('available-properties.send-bulk-email');
     Route::post('/available-properties/{id}/notify-agents', [App\Http\Controllers\AvailablePropertyController::class, 'notifyAgents'])->name('available-properties.notify-agents');
-
+    Route::get('/available-properties/{id}/insta-post', [App\Http\Controllers\AvailablePropertyController::class, 'instaPost'])->name('available-properties.insta-post');
 
     // Inquiry Management
     Route::get('/inquiries', [InquiryController::class, 'index'])->name('inquiries.index');

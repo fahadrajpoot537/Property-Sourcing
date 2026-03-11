@@ -713,13 +713,13 @@
                             <a href="{{ route('admin.inquiries.index') }}"
                                 class="{{ request()->routeIs('admin.inquiries.*') && !request()->has('type') ? 'active' : '' }}">
                                 <i class="bi bi-envelope-fill"></i>
-                                <span>General Inquiries</span>
+                                <span>General Enquiries</span>
                             </a>
 
                             <a href="{{ route('admin.inquiries.index', ['type' => 'property']) }}"
                                 class="{{ request()->routeIs('admin.inquiries.*') && request()->get('type') == 'property' ? 'active' : '' }}">
                                 <i class="bi bi-building-check"></i>
-                                <span>Property Inquiries</span>
+                                <span>Property Enquiries</span>
                             </a>
                         @endif
 

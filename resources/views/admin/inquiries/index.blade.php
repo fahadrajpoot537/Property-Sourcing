@@ -1,17 +1,17 @@
 @extends('layouts.admin')
 
-@section('title', 'Inquiries')
+@section('title', 'Enquiries')
 
 @section('content')
     <!-- Page Header -->
     <div class="page-header">
         <div class="d-flex justify-content-between align-items-center">
             <div>
-                <h2>Inquiries</h2>
+                <h2>Enquiries</h2>
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
-                        <li class="breadcrumb-item active">Inquiries</li>
+                        <li class="breadcrumb-item active">Enquiries</li>
                     </ol>
                 </nav>
             </div>
@@ -24,7 +24,7 @@
             <div class="stats-card blue">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <p class="text-muted mb-1 small">Total Inquiries</p>
+                        <p class="text-muted mb-1 small">Total Enquiries</p>
                         <h3 class="mb-0" id="totalCount">{{ $totalCount }}</h3>
                     </div>
                     <div class="icon">
@@ -85,7 +85,7 @@
     <!-- Inquiries Table -->
     <div class="content-card">
         <div class="card-header">
-            <h5><i class="bi bi-list-ul me-2"></i>All Inquiries</h5>
+            <h5><i class="bi bi-list-ul me-2"></i>All Enquiries</h5>
             <div class="d-flex gap-2">
                 <select id="typeFilter" class="form-select form-select-sm" style="width: 150px;">
                     <option value="">All Types</option>
@@ -338,7 +338,7 @@
                     searchPlaceholder: "Search by name, email, phone...",
                     lengthMenu: "Show _MENU_ entries",
                     info: "Showing _START_ to _END_ of _TOTAL_ inquiries",
-                    infoEmpty: "No inquiries found",
+                    infoEmpty: "No Enquiries found",
                     infoFiltered: "(filtered from _MAX_ total inquiries)"
                 },
                 columnDefs: [

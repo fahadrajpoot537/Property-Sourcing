@@ -606,4 +606,17 @@ class AvailablePropertyController extends Controller
 
         return response()->json(['success' => true, 'message' => 'Emails sent successfully to ' . $recipients->count() . ' recipients.']);
     }
+
+    public function instaPost($id)
+    {
+        $property = AvailableProperty::with(['propertyType', 'marketingPurpose', 'unitType', 'features', 'costs'])->findOrFail($id);
+
+        $logoBase64 = null;
+        if (file_exists(public_path('logo.png'))) {
+            $logoData = file_get_contents(public_path('logo.png'));
+            $logoBase64 = 'data:image/png;base64,' . base64_encode($logoData);
+        }
+
+        return view('admin.available_properties.insta_post', compact('property', 'logoBase64'));
+    }
 }

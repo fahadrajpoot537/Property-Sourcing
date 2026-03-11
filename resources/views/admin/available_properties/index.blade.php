@@ -59,11 +59,15 @@
     <!-- Header Buttons -->
     <div class="row g-3 mb-4 align-items-center">
         <div class="col">
-            <h5 class="mb-0 text-dark fw-bold"><i class="bi bi-list-ul me-2"></i>{{ request('status') ? ucfirst(request('status')) : 'All' }} Available Properties</h5>
-            <span class="text-muted small">Showing {{ $properties->firstItem() ?? 0 }} - {{ $properties->lastItem() ?? 0 }} of {{ $properties->total() }} properties</span>
+            <h5 class="mb-0 text-dark fw-bold"><i
+                    class="bi bi-list-ul me-2"></i>{{ request('status') ? ucfirst(request('status')) : 'All' }} Available
+                Properties</h5>
+            <span class="text-muted small">Showing {{ $properties->firstItem() ?? 0 }} - {{ $properties->lastItem() ?? 0 }}
+                of {{ $properties->total() }} properties</span>
         </div>
         <div class="col-auto d-flex gap-2">
-            <button type="button" class="btn btn-light border btn-sm px-3" data-bs-toggle="modal" data-bs-target="#propertyFilterModal">
+            <button type="button" class="btn btn-light border btn-sm px-3" data-bs-toggle="modal"
+                data-bs-target="#propertyFilterModal">
                 <i class="bi bi-sliders me-2"></i>Search & Filter
                 @php $activeFilters = count(array_filter(request()->only(['search', 'property_type', 'purpose', 'min_price', 'max_price']))); @endphp
                 @if($activeFilters > 0)
@@ -73,7 +77,9 @@
             <button type="button" id="btnSendBulkEmail" class="btn btn-admin-blue btn-sm px-3" style="display: none;">
                 <i class="bi bi-envelope me-2"></i>Email Selected
             </button>
-            <a href="{{ route('admin.available-properties.index', ['status' => request('status')]) }}" class="btn btn-outline-secondary btn-sm px-3 {{ $activeFilters > 0 ? '' : 'd-none' }}" title="Reset Filters">
+            <a href="{{ route('admin.available-properties.index', ['status' => request('status')]) }}"
+                class="btn btn-outline-secondary btn-sm px-3 {{ $activeFilters > 0 ? '' : 'd-none' }}"
+                title="Reset Filters">
                 <i class="bi bi-arrow-counterclockwise me-1"></i>Reset
             </a>
         </div>
@@ -115,14 +121,17 @@
                                     <img src="{{ Storage::url($property->thumbnail) }}" alt="Property" class="rounded shadow-sm"
                                         style="width: 50px; height: 50px; object-fit: cover; border: 1px solid #eee;">
                                 @else
-                                    <div class="rounded bg-light d-flex align-items-center justify-content-center border" style="width: 50px; height: 50px;">
+                                    <div class="rounded bg-light d-flex align-items-center justify-content-center border"
+                                        style="width: 50px; height: 50px;">
                                         <i class="bi bi-house text-muted fs-5"></i>
                                     </div>
                                 @endif
                             </td>
                             <td>
                                 <div class="fw-bold text-dark">{{ Str::limit($property->headline, 40) }}</div>
-                                <div class="text-muted small"><i class="bi bi-geo-alt-fill me-1 text-danger opacity-75"></i>{{ Str::limit($property->location, 35) }}</div>
+                                <div class="text-muted small"><i
+                                        class="bi bi-geo-alt-fill me-1 text-danger opacity-75"></i>{{ Str::limit($property->location, 35) }}
+                                </div>
                             </td>
                             @if(auth()->user()->role === 'admin')
                                 <td>
@@ -132,37 +141,50 @@
                             @endif
                             <td>
                                 <div class="mb-1">
-                                    <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill font-weight-normal px-2 tiny">{{ $property->marketingPurpose->name ?? 'Unset' }}</span>
+                                    <span
+                                        class="badge bg-info-subtle text-info border border-info-subtle rounded-pill font-weight-normal px-2 tiny">{{ $property->marketingPurpose->name ?? 'Unset' }}</span>
                                 </div>
-                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill font-weight-normal px-2 tiny">{{ $property->propertyType->name ?? 'Unset' }}</span>
+                                <span
+                                    class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill font-weight-normal px-2 tiny">{{ $property->propertyType->name ?? 'Unset' }}</span>
                             </td>
                             <td>
                                 <div class="fw-bold text-pink">£{{ number_format($property->price, 0) }}</div>
                                 @if($property->psg_fees > 0)
-                                    <div class="tiny text-muted" style="font-size: 0.65rem;">+ £{{ number_format($property->psg_fees, 0) }}</div>
+                                    <div class="tiny text-muted" style="font-size: 0.65rem;">+
+                                        £{{ number_format($property->psg_fees, 0) }}</div>
                                 @endif
                             </td>
                             <td>
                                 <form action="{{ route('admin.available-properties.update-status', $property->id) }}"
                                     method="POST" class="status-form">
                                     @csrf
-                                    <select name="status" class="form-select form-select-sm fw-600 status-select text-dark shadow-none border-0 bg-light-subtle"
+                                    <select name="status"
+                                        class="form-select form-select-sm fw-600 status-select text-dark shadow-none border-0 bg-light-subtle"
                                         style="min-width: 125px; font-size: 0.75rem; padding: 0.25rem 0.5rem;"
                                         onchange="this.form.submit()">
                                         @if(auth()->user()->role === 'admin')
-                                            <option value="pending" {{ $property->status == 'pending' ? 'selected' : '' }}>Pending</option>
-                                            <option value="approved" {{ $property->status == 'approved' ? 'selected' : '' }}>Approved</option>
-                                            <option value="under offer" {{ $property->status == 'under offer' ? 'selected' : '' }}>Under Offer</option>
-                                            <option value="disapproved" {{ $property->status == 'disapproved' ? 'selected' : '' }}>Disapproved</option>
-                                            <option value="sold out" {{ $property->status == 'sold out' ? 'selected' : '' }}>Sold Out</option>
+                                            <option value="pending" {{ $property->status == 'pending' ? 'selected' : '' }}>Pending
+                                            </option>
+                                            <option value="approved" {{ $property->status == 'approved' ? 'selected' : '' }}>Approved
+                                            </option>
+                                            <option value="under offer" {{ $property->status == 'under offer' ? 'selected' : '' }}>
+                                                Under Offer</option>
+                                            <option value="disapproved" {{ $property->status == 'disapproved' ? 'selected' : '' }}>
+                                                Disapproved</option>
+                                            <option value="sold out" {{ $property->status == 'sold out' ? 'selected' : '' }}>Sold Out
+                                            </option>
                                             <option value="draft" {{ $property->status == 'draft' ? 'selected' : '' }}>Draft</option>
                                         @else
-                                            <option value="pending" {{ $property->status == 'pending' ? 'selected' : '' }}>Pending</option>
-                                            <option value="under offer" {{ $property->status == 'under offer' ? 'selected' : '' }}>Under Offer</option>
-                                            <option value="sold out" {{ $property->status == 'sold out' ? 'selected' : '' }}>Sold Out</option>
+                                            <option value="pending" {{ $property->status == 'pending' ? 'selected' : '' }}>Pending
+                                            </option>
+                                            <option value="under offer" {{ $property->status == 'under offer' ? 'selected' : '' }}>
+                                                Under Offer</option>
+                                            <option value="sold out" {{ $property->status == 'sold out' ? 'selected' : '' }}>Sold Out
+                                            </option>
                                             <option value="draft" {{ $property->status == 'draft' ? 'selected' : '' }}>Draft</option>
                                             @if(!in_array($property->status, ['pending', 'sold out', 'under offer', 'draft']))
-                                                <option value="{{ $property->status }}" selected disabled>{{ ucfirst($property->status) }}</option>
+                                                <option value="{{ $property->status }}" selected disabled>
+                                                    {{ ucfirst($property->status) }}</option>
                                             @endif
                                         @endif
                                     </select>
@@ -170,22 +192,31 @@
                             </td>
                             <td class="text-end pe-4">
                                 <div class="d-flex gap-1 justify-content-end">
-                                    <a href="{{ route('available-properties.show', $property->id) }}" class="btn btn-sm btn-light border-0" title="View" target="_blank">
+                                    <a href="{{ route('available-properties.show', $property->id) }}"
+                                        class="btn btn-sm btn-light border-0" title="View" target="_blank">
                                         <i class="bi bi-eye"></i>
                                     </a>
-                                    <a href="{{ route('admin.available-properties.edit', $property->id) }}" class="btn btn-sm btn-light border-0" title="Edit">
+                                    <a href="{{ route('admin.available-properties.edit', $property->id) }}"
+                                        class="btn btn-sm btn-light border-0" title="Edit">
                                         <i class="bi bi-pencil-square"></i>
                                     </a>
-                                    <button type="button" class="btn btn-sm btn-light border-0 text-warning btn-notify-agents" title="Notify" data-property-id="{{ $property->id }}" data-property-headline="{{ $property->headline }}">
+                                    <button type="button" class="btn btn-sm btn-light border-0 text-warning btn-notify-agents"
+                                        title="Notify" data-property-id="{{ $property->id }}"
+                                        data-property-headline="{{ $property->headline }}">
                                         <i class="bi bi-megaphone"></i>
                                     </button>
+                                    <a href="{{ route('admin.available-properties.insta-post', $property->id) }}"
+                                        class="btn btn-sm btn-light border-0 text-danger" title="Insta Post" target="_blank">
+                                        <i class="bi bi-instagram"></i>
+                                    </a>
                                     @if(auth()->user()->role === 'admin')
                                         <a href="{{ route('admin.property-offers.index', $property->id) }}"
                                             class="btn btn-sm btn-light border-0" title="Offers">
                                             <i class="bi bi-currency-pound"></i>
                                         </a>
                                     @endif
-                                    <form action="{{ route('admin.available-properties.destroy', $property->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this property?');">
+                                    <form action="{{ route('admin.available-properties.destroy', $property->id) }}"
+                                        method="POST" class="d-inline" onsubmit="return confirm('Delete this property?');">
                                         @csrf @method('DELETE')
                                         <button type="submit" class="btn btn-sm btn-light border-0 text-danger" title="Delete">
                                             <i class="bi bi-trash3"></i>
@@ -195,21 +226,21 @@
                             </td>
                         </tr>
                     @endforeach
-                        @if($properties->count() == 0)
-                            <tr>
-                                <td colspan="9" class="text-center py-5">
-                                    <i class="bi bi-inbox fs-1 text-muted d-block mb-3"></i>
-                                    <p class="text-muted mb-3">No available properties found.</p>
-                                    <a href="{{ route('admin.available-properties.create') }}" class="btn btn-admin-pink">
-                                        <i class="bi bi-plus-lg me-2"></i>Add First Property
-                                    </a>
-                                </td>
-                            </tr>
-                        @endif
-                    </tbody>
-                </table>
-            </div>
+                    @if($properties->count() == 0)
+                        <tr>
+                            <td colspan="9" class="text-center py-5">
+                                <i class="bi bi-inbox fs-1 text-muted d-block mb-3"></i>
+                                <p class="text-muted mb-3">No available properties found.</p>
+                                <a href="{{ route('admin.available-properties.create') }}" class="btn btn-admin-pink">
+                                    <i class="bi bi-plus-lg me-2"></i>Add First Property
+                                </a>
+                            </td>
+                        </tr>
+                    @endif
+                </tbody>
+            </table>
         </div>
+    </div>
     </div>
 
     <!-- Pagination -->
@@ -227,7 +258,8 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body p-4">
-                    <form id="bulkEmailForm" action="{{ route('admin.available-properties.send-bulk-email') }}" method="POST">
+                    <form id="bulkEmailForm" action="{{ route('admin.available-properties.send-bulk-email') }}"
+                        method="POST">
                         @csrf
                         <div class="mb-3">
                             <label class="form-label fw-600">Recipients:</label>
@@ -344,7 +376,8 @@
                             <label class="form-label small fw-600 text-muted">Keyword Search</label>
                             <div class="input-group input-group-sm">
                                 <span class="input-group-text bg-light border-0"><i class="bi bi-search"></i></span>
-                                <input type="text" name="search" class="form-control bg-light border-0" placeholder="Headline, area, or ID..." value="{{ request('search') }}">
+                                <input type="text" name="search" class="form-control bg-light border-0"
+                                    placeholder="Headline, area, or ID..." value="{{ request('search') }}">
                             </div>
                         </div>
 
@@ -352,7 +385,8 @@
                             <!-- Property Type -->
                             <div class="col-6">
                                 <label class="form-label small fw-600 text-muted">Property Type</label>
-                                <select name="property_type" class="form-select form-select-sm bg-light border-0 shadow-none">
+                                <select name="property_type"
+                                    class="form-select form-select-sm bg-light border-0 shadow-none">
                                     <option value="">Any Type</option>
                                     @foreach($propertyTypes as $type)
                                         <option value="{{ $type->id }}" {{ request('property_type') == $type->id ? 'selected' : '' }}>{{ $type->name }}</option>
@@ -374,14 +408,19 @@
                         <div class="mt-4">
                             <label class="form-label small fw-600 text-muted">Price Range (£)</label>
                             <div class="d-flex gap-2 align-items-center">
-                                <input type="number" name="min_price" class="form-control form-control-sm bg-light border-0 text-center" placeholder="Min" value="{{ request('min_price') }}">
+                                <input type="number" name="min_price"
+                                    class="form-control form-control-sm bg-light border-0 text-center" placeholder="Min"
+                                    value="{{ request('min_price') }}">
                                 <span class="text-muted small">to</span>
-                                <input type="number" name="max_price" class="form-control form-control-sm bg-light border-0 text-center" placeholder="Max" value="{{ request('max_price') }}">
+                                <input type="number" name="max_price"
+                                    class="form-control form-control-sm bg-light border-0 text-center" placeholder="Max"
+                                    value="{{ request('max_price') }}">
                             </div>
                         </div>
                     </div>
                     <div class="modal-footer border-top-0 pt-0 pb-4">
-                        <a href="{{ route('admin.available-properties.index', ['status' => request('status')]) }}" class="btn btn-link link-secondary text-decoration-none small">Clear All</a>
+                        <a href="{{ route('admin.available-properties.index', ['status' => request('status')]) }}"
+                            class="btn btn-link link-secondary text-decoration-none small">Clear All</a>
                         <button type="submit" class="btn btn-primary px-4 btn-sm rounded-pill">Apply Filters</button>
                     </div>
                 </form>
@@ -483,7 +522,7 @@
                     e.preventDefault();
 
                     const formData = new FormData(this);
-                    
+
                     // Add property IDs from the main table checkboxes
                     const propertyIds = Array.from(document.querySelectorAll('.property-checkbox:checked')).map(cb => cb.value);
                     propertyIds.forEach(id => formData.append('property_ids[]', id));

@@ -413,7 +413,10 @@
                         </div>
                         <div class="col-md-4 admin-form-group">
                             <label class="admin-label">Average Market Value (£)</label>
+                            <input type="hidden" id="mv-avg-input" name="market_value_avg"
+                                value="{{ old('market_value_avg', $property->market_value_avg) }}">
                             <input type="text" id="mv-avg-display" class="admin-input" readonly
+                                value="{{ old('market_value_avg', $property->market_value_avg) ? number_format(old('market_value_avg', $property->market_value_avg), 2) : '' }}"
                                 placeholder="Auto (avg check)">
                         </div>
                         <div class="col-12">
@@ -841,12 +844,16 @@
                 const max = parseFloat(mvMax.value) || 0;
                 const avg = (min + max) / 2;
 
+                const avgInput = document.getElementById('mv-avg-input');
+
                 if (avg > 0) {
                     mvAvgDisplay.value = avg.toLocaleString('en-GB', { minimumFractionDigits: 2 });
+                    if (avgInput) avgInput.value = avg;
                     const disc = ((1 - (portal / avg)) * 100);
                     discountDisplay.textContent = Math.max(0, disc).toFixed(1) + '%';
                 } else {
                     mvAvgDisplay.value = '';
+                    if (avgInput) avgInput.value = '';
                     discountDisplay.textContent = '0%';
                 }
             }
